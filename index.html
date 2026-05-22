@@ -2,362 +2,500 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📦 库存清单 Inventory Checklist</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>📦 库存清单 Inventory Checklist (Cloud Sync v3)</title>
 <style>
+/* ── 核心样式 ── */
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#f8fafc;min-height:100vh;padding:14px 12px 50px}
-.wrap{max-width:640px;margin:0 auto}
-.header{background:linear-gradient(135deg,#1e3a5f,#2563eb);border-radius:16px;padding:20px 22px 16px;margin-bottom:14px;color:#fff;box-shadow:0 4px 20px rgba(37,99,235,.25); position: relative;}
-.header-sub{font-size:11px;letter-spacing:2px;opacity:.7;margin-bottom:3px;text-transform:uppercase}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f1f5f9;color:#1e293b;padding:12px 12px 50px}
+.wrap{max-width:600px;margin:0 auto}
+
+/* ── 头部仪表盘 ── */
+.header{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-radius:16px;padding:20px;color:#fff;margin-bottom:12px;box-shadow:0 4px 12px rgba(15,23,42,0.15);position:relative}
+.header-sub{font-size:11px;letter-spacing:1.5px;opacity:.7;margin-bottom:4px;text-transform:uppercase}
 .header h1{font-size:20px;font-weight:700;margin-bottom:12px;line-height:1.3}
-.prog-row{display:flex;justify-content:space-between;font-size:12px;opacity:.85;margin-bottom:5px}
-.prog-bar{background:rgba(255,255,255,.2);border-radius:99px;height:8px;overflow:hidden}
+.prog-row{display:flex;justify-content:space-between;font-size:12px;opacity:.85;margin-bottom:6px}
+.prog-bar{background:rgba(255,255,255,.08);border-radius:99px;height:8px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
 .prog-fill{height:100%;background:#4ade80;border-radius:99px;transition:width .3s}
-.sync-status {position: absolute; top: 16px; right: 16px; font-size: 10px; background: rgba(0,0,0,0.25); padding: 5px 8px; border-radius: 6px; font-weight:600;}
+.sync-status {position:absolute;top:20px;right:20px;font-size:10px;background:rgba(255,255,255,0.06);padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.08)}
 
-.toolbar{display:flex;gap:8px;margin-bottom:12px}
-.search{flex:1;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.btn-toggle-edit{background:#3b82f6;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;box-shadow:0 1px 4px rgba(59,130,246,.3);}
-.btn-toggle-edit.active{background:#ef4444;box-shadow:0 1px 4px rgba(239,68,68,.3);}
+/* ── 工具栏与搜索 ── */
+.control-panel {background:#fff;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.toolbar {display:flex;gap:8px}
+.search-input {flex:1;padding:10px 14px 10px 36px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none;transition:all 0.2s;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 12px center}
+.search-input:focus {border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.btn-toggle-admin{background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-toggle-admin.active{background:#ffeeef;color:#ef4444;border-color:#fecaca;box-shadow:0 2px 4px rgba(239,68,68,0.1)}
+.tip-box {text-align:center;font-size:11px;color:#94a3b8;margin-top:10px;line-height:1.5}
+.admin-on .tip-normal, .tip-admin {display:none}
+.admin-on .tip-admin {display:block}
 
-.btn-reset{background:#fff;color:#64748b;border:1.5px solid #e2e8f0; width: 100%; padding:12px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; margin-top: 14px;}
-.tip{text-align:center;font-size:11px;color:#64748b;margin-bottom:12px; line-height: 1.5;}
+/* ── 物资分类与行 ── */
+.category-section {background:#fff;border-radius:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden}
+.category-header {padding:12px 14px;font-weight:700;font-size:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f1f5f9;position:relative}
+.cat-badge {font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;background:rgba(255,255,255,0.6)}
+.btn-add-item-row {display:none;width:100%;padding:10px;text-align:center;color:#3b82f6;font-size:13px;font-weight:600;cursor:pointer;border-top:1px dashed #e2e8f0;background:#f8fafc}
+.admin-on .btn-add-item-row {display:block}
+.admin-on .cat-row-mask {display:flex}
 
-.cat-block{background:#fff;border-radius:14px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07)}
-.cat-head{padding:12px 15px;display:flex;align-items:center;justify-content:space-between;border-bottom:1.5px solid}
-.cat-name{font-weight:700;font-size:14px}
-.cat-badge{font-size:11px;color:#fff;border-radius:99px;padding:3px 10px;font-weight:600}
-.row{display:flex;align-items:center;padding:12px 15px;border-bottom:1px solid #f1f5f9;transition:background .15s}
-.row:last-child{border-bottom:none}
-.row.done{background:#f0fdf4}
-.row.done .rname{text-decoration:line-through;color:#86efac}
-.row.low-stock .rname::after{content:" ⚠️ Low";font-size:10px;color:#d97706;margin-left:6px;background:#fffbeb;padding:2px 6px;border-radius:4px;}
+.item-row {display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #f8fafc;position:relative}
+.item-row:last-child {border-bottom:none}
+.item-row.checked-view {background:#f0fdf4}
+.item-row.checked-view .rname{text-decoration:line-through;color:#86efac}
+.item-row.low-stock .rname::after{content:" ⚠️ 低 / Low";font-size:10px;color:#d97706;margin-left:6px;background:#fffbeb;padding:1px 5px;border-radius:4px}
+.row-chk {width:22px;height:22px;border-radius:6px;border:2px solid #cbd5e1;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;cursor:pointer}
+.row-chk svg {display:none}
+.item-row.checked-view .row-chk {background:#16a34a;border-color:#16a34a}
+.item-row.checked-view .row-chk svg {display:block}
+.rico {font-size:18px;margin-right:10px;width:22px;text-align:center;flex-shrink:0}
+.rtext-wrap {flex:1;min-width:0;padding-right:8px}
+.rname {font-size:14px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+.rsub {font-size:11px;color:#94a3b8;margin-top:1px;line-height:1.2}
 
-.chk{width:22px;height:22px;border-radius:6px;border:2px solid #cbd5e1;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;cursor:pointer;user-select:none;transition:all .15s}
-.chk svg{display:none}
-.row.done .chk{background:#16a34a;border-color:#16a34a}
-.row.done .chk svg{display:block}
+/* ── 计数器控制器 ── */
+.counter-box {display:flex;align-items:center;background:#f1f5f9;padding:3px;border-radius:8px}
+.btn-ctr {width:28px;height:28px;border:none;background:#fff;border-radius:6px;font-size:16px;font-weight:700;color:#475569;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
+.btn-ctr:active {background:#e2e8f0}
+.qty-disp {min-width:38px;text-align:center;font-size:14px;font-weight:700;color:#0f172a}
+.unit-lbl {font-size:10px;color:#64748b;margin-top:2px;cursor:pointer}
+.qty-grp {display:flex;flex-direction:column;align-items:center;margin:0 4px}
 
-.edit-btn{width:22px;height:22px;border-radius:6px;background:#f1f5f9;color:#64748b;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;cursor:pointer;font-size:12px;border:1.5px solid #cbd5e1;}
-.edit-btn:active{background:#e2e8f0;}
+/* ── 管理员浮层遮罩 ── */
+.cat-row-mask, .item-row-mask {display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.9);z-index:5;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer}
+.item-row-mask {color:#ef4444;border-bottom:1px solid #f8fafc}
+.cat-row-mask {border-radius:12px 12px 0 0;color:#ef4444}
+.ricon-editable {position:relative;cursor:pointer}
+.rico-edit-icon {display:none;position:absolute;-4px;-4px;background:rgba(0,0,0,0.4);color:#fff;font-size:9px;width:13px;height:13px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.rico-editable:hover .rico-edit-icon {display:flex}
 
-.ricon{font-size:18px;margin-right:10px;flex-shrink:0;cursor:pointer;}
-.rtext-wrap{flex:1;min-width:0;padding-right:8px;}
-.rname{font-size:14px;color:#1e293b;font-weight:600;line-height:1.3;margin-bottom:2px;}
-.rsub{font-size:11px;color:#94a3b8;line-height:1.2;}
-.qty-wrap{text-align:right;flex-shrink:0}
-.qty-disp{font-size:14px;font-weight:700;padding:4px 10px;border-radius:8px;display:inline-block;cursor:pointer;border:1.5px dashed transparent;transition:border .15s;user-select:none}
-.qty-disp:hover{border-color:currentColor}
-.qty-inp{font-size:14px;font-weight:700;padding:4px 8px;border-radius:8px;border:2px solid #2563eb;outline:none;width:80px;text-align:center;display:none}
+/* ── 弹窗/全局按钮 ── */
+.global-action-btn {width:100%;padding:14px;background:#fff;border:2px dashed #cbd5e1;color:#64748b;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:12px}
+.btn-reset-system {width:100%;padding:12px;background:none;border:none;color:#94a3b8;font-size:11px;text-decoration:underline;margin-top:10px}
+.hidden {display:none!important}
 
-.add-item-btn{display:block;width:100%;padding:10px;text-align:center;background:#f8fafc;color:#3b82f6;font-size:13px;font-weight:600;cursor:pointer;border-top:1px dashed #cbd5e1;}
-.add-cat-btn{display:block;width:100%;padding:14px;text-align:center;background:#fff;border:2px dashed #cbd5e1;color:#64748b;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:14px;}
-.hidden{display:none!important}
+/* 图标选择器弹窗 */
+.modal-overlay {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-box {background:#fff;width:90%;max-width:400px;border-radius:16px;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,0.2)}
+.modal-title {font-size:16px;font-weight:700;margin-bottom:15px;text-align:center}
+.emoji-grid {display:grid;grid-template-columns:repeat(6,1fr);gap:10px;max-height:250px;overflow-y:auto;padding:5px}
+.emoji-btn {font-size:24px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px;cursor:pointer;text-align:center}
+.emoji-btn:active {background:#e2e8f0}
 </style>
 </head>
 <body>
-<div class="wrap">
+
+<div class="wrap" id="main-wrap">
   <div class="header">
-    <div class="header-sub">Safety & Store Inventory</div>
-    <div class="sync-status" id="sync-status">🔄 加载中 Loading...</div>
-    <h1>📦 库存清单<br>Inventory Checklist</h1>
-    <div class="prog-row"><span>已检查 / Checked</span><span id="ptxt">0 / 0 (0%)</span></div>
-    <div class="prog-bar"><div class="prog-fill" id="pfill" style="width:0%"></div></div>
+    <div class="header-sub">Safety & Store Inventory (Kempas)</div>
+    <div class="sync-status" id="sync-status">🔄 加载 Loading...</div>
+    <h1>📦 物资库存盘点<br>Stock Checklist</h1>
+    <div class="prog-row"><span>已检查 Checked</span><span id="prog-text">0 / 0 (0%)</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
   </div>
 
-  <div class="toolbar">
-    <input class="search" type="text" placeholder="🔍 搜索物品 / Search items..." oninput="doSearch(this.value)">
-    <button class="btn-toggle-edit" id="btn-edit" onclick="toggleEditMode()">🛠️ 管理 Admin</button>
-  </div>
-  
-  <div class="tip" id="normal-tip">
-    ✅ 勾选方块表示已盘点 (Tick to mark counted)<br>
-    ✏️ 点击数字修改库存 (Click quantity to update)
-  </div>
-  <div class="tip hidden" id="edit-tip" style="color:#ef4444; font-weight:bold;">
-    ⚠️ 管理模式已开启: 可随意修改名称、单位、添加新物品
+  <div class="control-panel">
+    <div class="toolbar">
+      <input type="text" class="search-input" placeholder="输入物资或英文快捷搜索..." oninput="filterItems(this.value)">
+      <button class="btn-toggle-admin" onclick="toggleAdminMode()" id="btn-admin">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
+        管理员 Admin
+      </button>
+    </div>
+    <div class="tip-box">
+      <div class="tip-normal">
+        ✅ 勾选方块表示已盘点 (Tick box when counted)<br>
+        ✏️ 点击数字直接修改库存数量 (Click qty to edit)
+      </div>
+      <div class="tip-admin hidden" style="color:#ef4444">
+        ⚠️ 管理模式已开启 (Admin mode is ON)<br>
+        可点击图标、名称、单位进行修改，或添加新分类/物品
+      </div>
+    </div>
   </div>
 
-  <div id="inv"></div>
-  <div id="add-cat-container"></div>
+  <div id="checklist-container"></div>
   
-  <button class="btn-reset" onclick="doReset()">🚨 恢复出厂设置 / Factory Reset</button>
+  <div id="admin-actions-container" class="hidden">
+    <button class="global-action-btn" onclick="addNewCategory()">📁 添加新分类 Add New Category</button>
+  </div>
+  <button class="btn-reset-system" onclick="resetSystemToFactoryDefault()">🚨 重置系统至默认数据 Restore to Factory</button>
 </div>
+
+<div class="modal-overlay" id="emoji-modal">
+  <div class="modal-box">
+    <div class="modal-title">选择物资图标 / Choose Icon</div>
+    <div class="emoji-grid" id="emoji-grid">
+      </div>
+    <button class="global-action-btn" style="margin-top:15px; margin-bottom:0;" onclick="closeEmojiModal()">关闭 Close</button>
+  </div>
+</div>
+
 <script>
-// 默认分类数据
-const DEFAULT_CATS = [
-  {id:"cleaning", name:"🧴 清洁用品 Cleaning", color:"#2563eb", bg:"#eff6ff", border:"#bfdbfe"},
-  {id:"paint",    name:"🎨 油漆喷漆 Paint",     color:"#7c3aed", bg:"#f5f3ff", border:"#ddd6fe"},
-  {id:"safety",   name:"🦺 安全设备 Safety",    color:"#059669", bg:"#ecfdf5", border:"#a7f3d0"},
-  {id:"tools",    name:"🔧 工具器材 Tools",     color:"#d97706", bg:"#fffbeb", border:"#fde68a"},
-  {id:"materials",name:"📦 材料耗材 Materials", color:"#dc2626", bg:"#fef2f2", border:"#fecaca"},
-];
+// 图标库预设 (工地常见)
+const emojiPack = ['🧴', '🫧', '🧹', '🧺', '🌸', '🧻', '🖤', '🤍', '💙', '❤️', '罐', '桶', '🪣', '🧯', '🚧', '🚧', '🚩', '🚩', '🚧', '🚧', '⛑️', '⛑️', '⛑️', '🧥', '🦺', '🦺', '🧤', '🧤', '🥾', '🥾', '🔒', '🔧', '🔨', '📏', '🔋', '🔑', '⚙️', '⚙️', '💧', '🛍️', '🛍️', '📦', '📦', '🔹', '✅'];
 
-// 默认物资数据（单位全部替换为中英双语提示）
-const DEFAULT_ITEMS = [
-  {id:"mr_muscle",   cat:"cleaning", icon:"🧴", name:"威猛先生 Mr. Muscle",          sub:"多功能清洁剂",      unit:"个/pcs",  qty:8,  low:3},
-  {id:"clorox",      cat:"cleaning", icon:"🫧", name:"高乐氏漂白水 Clorox Bleach",   sub:"消毒漂白剂",        unit:"个/pcs",  qty:18, low:5},
-  {id:"degreaser",   cat:"cleaning", icon:"🧹", name:"碱性除油剂 Alkaline Degreaser",sub:"工业脱脂剂",        unit:"个/pcs",  qty:3,  low:2},
-  {id:"washing_pwd", cat:"cleaning", icon:"🧺", name:"洗衣粉 Washing Powder",        sub:"1包=5kg",          unit:"包/pack", qty:12, low:3},
-  {id:"spray_black", cat:"paint",    icon:"🖤", name:"喷漆 (黑) Spray Paint Black",   sub:"",                unit:"罐/can",  qty:10, low:3},
-  {id:"spray_white", cat:"paint",    icon:"🤍", name:"喷漆 (白) Spray Paint White",   sub:"",                unit:"罐/can",  qty:20, low:5},
-  {id:"pp_white",    cat:"paint",    icon:"🪣", name:"专业漆 (白) Pro-Paint White",   sub:"1桶=5L",           unit:"桶/pail", qty:4,  low:2},
-  {id:"fire_base",   cat:"safety",   icon:"🧯", name:"灭火器 Fire Extinguisher",      sub:"含底座",            unit:"套/set",  qty:20, low:5},
-  {id:"helmet_y",    cat:"safety",   icon:"⛑️", name:"安全帽 (黄) Helmet Yellow",     sub:"",                unit:"顶/pcs",  qty:6,  low:2},
-  {id:"boot_39",     cat:"safety",   icon:"🥾", name:"安全靴 Safety Boot - Size 39",  sub:"",                unit:"双/pair", qty:11, low:3},
-  {id:"vest_lg",     cat:"safety",   icon:"🦺", name:"背心 (浅绿) Vest Light Green",  sub:"",                unit:"件/pcs",  qty:5,  low:2},
-  {id:"glove_wb",    cat:"safety",   icon:"🧤", name:"手套 (白蓝) Gloves White/Blue", sub:"",                unit:"双/pair", qty:44, low:5},
-  {id:"loto_lock",   cat:"tools",    icon:"🔒", name:"LOTO 锁头 LOTO Lock",           sub:"停工安全锁",        unit:"个/pcs",  qty:46, low:10},
-  {id:"disc_107",    cat:"tools",    icon:"⚙️", name:"切割片 Cutting Disc 107mm",     sub:"107×1.2×16mm",    unit:"片/pcs",  qty:70, low:10},
-  {id:"tape_measure",cat:"tools",    icon:"📏", name:"卷尺 Measuring Tape KAKO",      sub:"",                unit:"个/pcs",  qty:8,  low:2},
-  {id:"battery",     cat:"tools",    icon:"🔋", name:"碱性电池 Greencell Battery",    sub:"1包=2粒",          unit:"包/pack", qty:15, low:3},
-  {id:"hose_blue",   cat:"materials",icon:"💧", name:"蓝水管 Sunny Hose Blue",        sub:"2\"×100M",        unit:"卷/roll", qty:1,  low:1},
-  {id:"tape_by",     cat:"materials",icon:"📦", name:"警示胶带 (黑黄) Warning Tape",  sub:"",                unit:"卷/roll", qty:11, low:3},
-  {id:"bag_big",     cat:"materials",icon:"🛍️", name:"垃圾袋 (大黑) Trash Bag Black", sub:"",                unit:"包/pack", qty:39, low:5},
-];
-
-let CATS = [];
-let ITEMS = [];
+// 初始化变量
+let items = [];
+let cats = [];
 let checked = {};
-let quantities = {}; 
-let isEditMode = false; // 管理模式开关
-
-function getQty(id){ return quantities[id] !== undefined ? quantities[id] : ITEMS.find(i=>i.id===id).qty; }
+let currentSearchQuery = '';
+let isAdminMode = false;
+let currentEditingItemId = null; // 记录当前正在修改图标的物资
 
 const statusEl = document.getElementById('sync-status');
+const normalTipEl = document.getElementById('normal-tip');
+const adminTipEl = document.getElementById('admin-tip');
+const addCatBtnEl = document.getElementById('admin-actions-container');
+const emojiModal = document.getElementById('emoji-modal');
 
-// 核心初始化：拉取云端数据时，顺便把动态分类也拉下来
+// 基础同步逻辑
 async function initData() {
   try {
     const res = await fetch('/api/sync');
-    const data = await res.json();
+    const cloudData = await res.json();
     
-    if (data && data.items && data.items.length > 0) {
-      ITEMS = data.items;
-      CATS = data.cats && data.cats.length > 0 ? data.cats : JSON.parse(JSON.stringify(DEFAULT_CATS));
-      checked = data.checked || {};
+    // 如果云端有完整数据（含 items 和 cats 两个数组），使用云端数据
+    if (cloudData && cloudData.items && cloudData.items.length > 0 && cloudData.cats && cloudData.cats.length > 0) {
+      items = cloudData.items;
+      cats = cloudData.cats;
+      checked = cloudData.checked || {};
     } else {
-      throw new Error("Empty DB");
+      // 数据库损坏或无数据，回退为 factory，并立刻上传，使数据库进入 v3 版本
+      useFactoryData();
+      await saveDataToCloudSilent(); 
     }
     statusEl.textContent = '🟢 已同步 Synced';
   } catch (error) {
     statusEl.textContent = '🔴 离线 Offline';
-    ITEMS = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
-    CATS = JSON.parse(JSON.stringify(DEFAULT_CATS));
+    useFactoryData();
   }
-  
-  ITEMS.forEach(it => { quantities[it.id] = it.qty; });
-  render();
+  renderDashboard();
 }
 
-async function saveDataToCloud() {
-  statusEl.textContent = '⏳ 保存中 Saving...';
-  ITEMS.forEach(it => { it.qty = quantities[it.id]; });
-
+async function saveDataToCloudSilent() {
   try {
     const response = await fetch('/api/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // 现在将 CATS 分类也一起存入数据库，实现分类的动态增加
-      body: JSON.stringify({ items: ITEMS, cats: CATS, checked: checked })
+      body: JSON.stringify({ items, cats, checked }) // 上传 v3 结构数据
     });
-    
-    if (!response.ok) throw new Error('Failed to save');
-    statusEl.textContent = '🟢 已同步 Synced';
+    if (!response.ok) throw new Error('API Sync failed');
+    return true;
   } catch (error) {
+    console.error('Data Sync failed silent', error);
+    return false;
+  }
+}
+
+async function saveDataToCloud() {
+  statusEl.textContent = '⏳ 保存中 Saving...';
+  const success = await saveDataToCloudSilent();
+  if (success) {
+    statusEl.textContent = '🟢 已同步 Synced';
+  } else {
     statusEl.textContent = '🔴 同步失败 Failed';
   }
 }
 
-// ── 管理模式逻辑 ──
-function toggleEditMode() {
-  isEditMode = !isEditMode;
-  const btn = document.getElementById('btn-edit');
-  btn.classList.toggle('active', isEditMode);
-  btn.textContent = isEditMode ? '✅ 退出管理 Done' : '🛠️ 管理 Admin';
-  document.getElementById('normal-tip').classList.toggle('hidden', isEditMode);
-  document.getElementById('edit-tip').classList.toggle('hidden', !isEditMode);
-  render(); // 重新渲染界面
+// 增减控制器
+function changeQty(id, delta) {
+  // 管理模式下不能打加减，只能直接输入
+  if (isAdminMode) return;
+  const item = items.find(i => i.id === id);
+  if (item) {
+    item.qty = Math.max(0, item.qty + delta);
+    renderDashboard();
+    saveDataToCloud();
+  }
 }
 
-function addCategory() {
-  const newName = prompt("请输入新分类名称 (例如: 🚗 车辆配件 Vehicle Parts):");
-  if(!newName) return;
-  const newId = "cat_" + Date.now();
-  CATS.push({
-    id: newId, 
-    name: newName, 
-    color: "#475569", bg: "#f8fafc", border: "#cbd5e1" // 默认给一个低调的灰蓝色主题
-  });
+// 直接修改库存输入框 (finishEdit)
+function finishQtyEdit(id) {
+  const inp = document.getElementById('e-' + id);
+  const disp = document.getElementById('d-' + id);
+  const v = inp.value.trim();
+  if(v !== ''){
+    const item = items.find(i=>i.id===id);
+    const n = isNaN(v) ? 0 : Math.max(0, Number(v)); // 确保输入合法非负数
+    item.qty = n;
+    saveDataToCloud();
+    renderDashboard();
+  }
+  inp.style.display='none';
+  disp.style.display='inline-block';
+}
+
+// F12 输入框快捷处理
+function startQtyEdit(id){
+  // 管理模式下，禁止修改数量
+  if (isAdminMode) return;
+  document.getElementById('d-'+id).style.display='none';
+  const inp = document.getElementById('e-'+id);
+  inp.style.display='inline-block';
+  inp.value = items.find(i=>i.id===id).qty;
+  inp.focus(); inp.select();
+}
+
+function getItemStatus(item) {
+  if (item.qty === 0) return 'out';
+  if (item.qty <= item.low) return 'low';
+  return 'healthy';
+}
+
+function toggleCheck(id) {
+  if (isAdminMode) return;
+  checked[id] = !checked[id];
+  renderDashboard();
   saveDataToCloud();
-  render();
 }
 
-function addItem(catId) {
-  const newName = prompt("请输入新物品名称及英文 (例如: 铁丝网 Wire Mesh):");
-  if(!newName) return;
-  const newUnit = prompt("请输入物品单位及英文 (例如: 卷/roll, 个/pcs):", "个/pcs");
-  if(!newUnit) return;
+// ── 管理员功能逻辑 ──
+function toggleAdminMode() {
+  isAdminMode = !isAdminMode;
+  const btn = document.getElementById('btn-admin');
+  const wrap = document.getElementById('main-wrap');
+  btn.classList.toggle('active', isAdminMode);
+  wrap.classList.toggle('admin-on', isAdminMode);
+  addCatBtnEl.classList.toggle('hidden', !isAdminMode);
+  btn.textContent = isAdminMode ? '✅ 完成 Done' : '🛠️ 管理 Admin';
+  renderDashboard();
+}
+
+// 选择图标相关逻辑
+function initEmojiGrid() {
+  const grid = document.getElementById('emoji-grid');
+  grid.innerHTML = emojiPack.map(e => `<div class="emoji-btn" onclick="selectEmojiForCurrentItem('${e}')">${e}</div>`).join('');
+}
+function selectEmojiForCurrentItem(emoji) {
+  const item = items.find(i => i.id === currentEditingItemId);
+  if (item) {
+    item.icon = emoji;
+    closeEmojiModal();
+    renderDashboard();
+    saveDataToCloud();
+  }
+}
+function showEmojiModal(itemId) {
+  currentEditingItemId = itemId;
+  emojiModal.style.display = 'flex';
+}
+function closeEmojiModal() {
+  emojiModal.style.display = 'none';
+}
+
+// 修改分类/物品元数据
+function editCategoryMetadata(catId) {
+  if (!isAdminMode) return;
+  const cat = cats.find(c => c.id === catId);
+  const newName = prompt(`修改分类双语名称 (例如: 🧴 清洁用品 Cleaning):\nModify bilingual category name:`, cat.name);
+  if (newName) { cat.name = newName; renderDashboard(); saveDataToCloud(); }
+}
+function editItemMetadata(itemId) {
+  if (!isAdminMode) return;
+  const item = items.find(i => i.id === itemId);
+  const newName = prompt(`修改物资双语名称 (例如: 威猛先生 Mr.Muscle):\nModify bilingual item name:`, item.name);
+  if (newName) { item.name = newName; renderDashboard(); saveDataToCloud(); }
+}
+function editItemSubtext(itemId) {
+  if (!isAdminMode) return;
+  const item = items.find(i => i.id === itemId);
+  const newSub = prompt(`修改副标题/备注 (例如: 多功能清洁剂):\nModify subtitle/notes:`, item.sub);
+  if (newSub !== null) { item.sub = newSub; renderDashboard(); saveDataToCloud(); }
+}
+function editItemUnit(itemId) {
+  if (!isAdminMode) return;
+  const item = items.find(i => i.id === itemId);
+  const newUnit = prompt(`修改中英双语单位 (例如: 包/pack):\nModify bilingual unit string:`, item.unit);
+  if (newUnit) { item.unit = newUnit; renderDashboard(); saveDataToCloud(); }
+}
+
+function deleteItem(itemId) {
+  if (!isAdminMode) return;
+  const item = items.find(i => i.id === itemId);
+  if (confirm(`🚨 警告 Warning:\n确定要从系统中彻底删除以下物资吗？\nAre you sure to delete this item forever?\n\n>> ${item.name} (${item.unit})`)) {
+    items = items.filter(i => i.id !== itemId);
+    if(checked[itemId]) delete checked[itemId];
+    renderDashboard();
+    saveDataToCloud();
+  }
+}
+
+function addNewCategory() {
+  if (!isAdminMode) return;
+  const newName = prompt(`请输入新分类的双语名称 (例如: 🚗 车辆配件 Vehicle Parts):\nEnter bilingual new category name:`, "");
+  if (newName) {
+    const newId = 'cat_' + Date.now();
+    cats.push({
+      id: newId, 
+      name: newName, 
+      color: "#475569", // 默认颜色：低调的深蓝灰
+      bg: "#f8fafc", textColor: "#475569" // 对应的背景和文本色
+    });
+    renderDashboard();
+    saveDataToCloud();
+  }
+}
+function addNewItemToCategory(catId) {
+  if (!isAdminMode) return;
+  const cat = cats.find(c => c.id === catId);
+  const newName = prompt(`[在以下分类中创建]: ${cat.name}\n请输入物资中英文名称 (例如: 威猛先生 Mr.Muscle):\nEnter bilingual new item name:`, "");
+  if (!newName) return;
+  const newUnit = prompt(`请输入库存双语单位 (例如: 包/pack, 个/pcs):\nEnter bilingual inventory unit:`, "个/pcs");
+  if (!newUnit) return;
   
-  const newItemId = "item_" + Date.now();
-  ITEMS.push({
+  const newItemId = 'item_' + Date.now();
+  items.push({
     id: newItemId,
     cat: catId,
-    icon: "🔹", // 默认图标
+    icon: "🔹", // 默认蓝色方块图标
     name: newName,
     sub: "",
     unit: newUnit,
     qty: 0,
-    low: 5
+    low: 5 // 默认紧张线
   });
-  quantities[newItemId] = 0;
-  saveDataToCloud();
-  render();
-}
-
-function editItemData(id) {
-  const item = ITEMS.find(i=>i.id === id);
-  if(!item) return;
-  
-  const newName = prompt("修改物品名称 Name:", item.name);
-  if(newName === null) return;
-  
-  const newUnit = prompt("修改单位 Unit:", item.unit);
-  if(newUnit === null) return;
-  
-  const newIcon = prompt("修改图标 Emoji:", item.icon);
-  if(newIcon === null) return;
-
-  item.name = newName.trim() !== "" ? newName : item.name;
-  item.unit = newUnit.trim() !== "" ? newUnit : item.unit;
-  item.icon = newIcon.trim() !== "" ? newIcon : item.icon;
-  
-  saveDataToCloud();
-  render();
-}
-// ─────────────────
-
-function updateProgress(){
-  const total = ITEMS.length, done = Object.values(checked).filter(Boolean).length;
-  const pct = total ? Math.round(done/total*100) : 0;
-  document.getElementById('ptxt').textContent = done+' / '+total+' ('+pct+'%)';
-  document.getElementById('pfill').style.width = pct+'%';
-}
-
-function toggleCheck(id){
-  checked[id] = !checked[id];
-  const el = document.querySelector('[data-id="'+id+'"]');
-  if(el) el.classList.toggle('done', !!checked[id]);
-  updateProgress();
+  renderDashboard();
   saveDataToCloud();
 }
+// ──────────────────────
 
-function startEdit(id){
-  document.getElementById('d-'+id).style.display='none';
-  const inp = document.getElementById('e-'+id);
-  inp.style.display='inline-block';
-  inp.value = getQty(id);
-  inp.focus(); inp.select();
-}
+function renderDashboard() {
+  const container = document.getElementById('checklist-container');
+  container.innerHTML = '';
 
-function finishEdit(id){
-  const inp = document.getElementById('e-'+id);
-  const disp = document.getElementById('d-'+id);
-  const v = inp.value.trim();
-  if(v !== ''){
-    const n = isNaN(v) ? v : Number(v);
-    quantities[id] = n;
-    disp.textContent = n + ' ' + ITEMS.find(i=>i.id===id).unit;
-    const row = document.querySelector('[data-id="'+id+'"]');
-    const item = ITEMS.find(i=>i.id===id);
-    if(row && item) row.classList.toggle('low-stock', !isNaN(n) && Number(n) <= item.low && Number(n) > 0);
-  }
-  inp.style.display='none';
-  disp.style.display='inline-block';
-  saveDataToCloud(); 
-}
+  let totalItems = items.length;
+  let outItems = items.filter(i => i.qty === 0).length;
+  let lowItems = items.filter(i => i.qty > 0 && i.qty <= i.low).length;
+  let checkedItems = Object.values(checked).filter(Boolean).length;
 
-function doSearch(q){
-  q = q.toLowerCase();
-  CATS.forEach(cat=>{
-    let vis=0;
-    ITEMS.filter(i=>i.cat===cat.id).forEach(item=>{
-      const el = document.querySelector('[data-id="'+item.id+'"]');
-      if(!el) return;
-      const show = item.name.toLowerCase().includes(q) || item.sub.toLowerCase().includes(q);
-      el.classList.toggle('hidden',!show);
-      if(show) vis++;
+  document.getElementById('prog-text').textContent = `${checkedItems} / ${totalItems}`;
+  const pct = totalItems > 0 ? Math.round(checkedItems / totalItems * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+
+  cats.forEach(cat => {
+    // 过滤物资
+    const catItems = items.filter(item => {
+      if (item.cat !== cat.id) return false;
+      const matchesSearch = item.name.toLowerCase().includes(currentSearchQuery) || 
+                            item.sub.toLowerCase().includes(currentSearchQuery);
+      return matchesSearch;
     });
-    const ce = document.getElementById('cat-'+cat.id);
-    if(ce) ce.classList.toggle('hidden', vis===0);
+
+    // 非管理模式下，只显示有物品的分类
+    if (!isAdminMode && catItems.length === 0) return;
+
+    const section = document.createElement('div');
+    section.className = 'category-section';
+
+    // 分类头部
+    const header = document.createElement('div');
+    header.className = 'category-header';
+    header.style.background = cat.bg;
+    header.style.color = cat.textColor;
+    header.innerHTML = `
+      <div class="cat-row-mask" onclick="editCategoryMetadata('${cat.id}')">✎ 修改分类元数据 Edit Category Metadata</div>
+      <span>${cat.name}</span>
+      <span class="cat-badge">${catItems.length} 项</span>
+    `;
+    section.appendChild(header);
+
+    // 渲染物资行
+    catItems.forEach(item => {
+      const status = getItemStatus(item);
+      let statusClass = (status === 'out' ? 'hidden ' : ''); // F12 缺货标记不显示
+      if(status === 'low') statusClass += 'low-stock ';
+      
+      const row = document.createElement('div');
+      row.className = `item-row ${statusClass} ${checked[item.id] ? 'checked-view' : ''}`;
+      row.dataset.id = item.id;
+      
+      // 管理员遮罩层 HTML (提前准备，按需显示)
+      const adminMaskHTML = `<div class="item-row-mask">
+                                <div style="color:#ef4444;" onclick="deleteItem('${item.id}')">🗑️ 删除本项 Delete Forever</div>
+                             </div>`;
+
+      // 图标区
+      const ricoHTML = isAdminMode 
+        ? `<div class="rico ricon-editable" onclick="showEmojiModal('${item.id}')"><span class="rico-edit-icon">✎</span>${item.icon}</div>`
+        : `<div class="rico">${item.icon}</div>`;
+
+      // 文本区
+      const textHTML = `<div class="rtext-wrap">
+                          <div class="rname" ${isAdminMode ? `onclick="editItemMetadata('${item.id}')" style="cursor:pointer;color:#3b82f6"` : ""}>${item.name}</div>
+                          ${isAdminMode || item.sub ? `<div class="rsub" ${isAdminMode ? `onclick="editItemSubtext('${item.id}')" style="cursor:pointer;color:#2563eb;font-weight:600;"` : ""}>${item.sub ? item.sub : "[点击添加副标题/备注]"}</div>` : ""}
+                        </div>`;
+
+      // 计数器区 (中英双语单位点击修改)
+      const ctrHTML = `<div class="counter-box">
+                          <button class="btn-ctr" onclick="changeQty('${item.id}', -1)" ${isAdminMode ? 'style="opacity:0.2"' : ''}>-</button>
+                          <div class="qty-grp">
+                            <span id="d-${item.id}" class="qty-disp" style="color:${item.qty===0?'#ef4444':cat.textColor}" onclick="startQtyEdit('${item.id}')">${item.qty}</span>
+                            <input id="e-${item.id}" class="qty-inp" type="text" onblur="finishQtyEdit('${item.id}')" onkeydown="if(event.key==='Enter'||event.key===\'Escape\')finishQtyEdit('${item.id}')">
+                            <div class="unit-lbl" ${isAdminMode ? `onclick="editItemUnit('${item.id}')" style="color:#2563eb;text-decoration:underline;font-weight:bold"` : ""}>${item.unit}</div>
+                          </div>
+                          <button class="btn-ctr" onclick="changeQty('${item.id}', 1)" ${isAdminMode ? 'style="opacity:0.2"' : ''}>+</button>
+                        </div>`;
+
+      row.innerHTML = `
+        ${isAdminMode ? adminMaskHTML : ""}
+        ${!isAdminMode ? `<div class="row-chk" onclick="toggleCheck('${item.id}')"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>` : ""}
+        ${ricoHTML}
+        ${textHTML}
+        ${ctrHTML}
+      `;
+      section.appendChild(row);
+    });
+
+    // 管理员：在该分类下添加新物品
+    const addItemBtn = document.createElement('div');
+    addItemBtn.className = 'btn-add-item-row';
+    addItemBtn.textContent = `➕ 在此分类下添加新物品 Add Item to [${cat.name}]`;
+    addItemBtn.onclick = () => addNewItemToCategory(cat.id);
+    section.appendChild(addItemBtn);
+
+    container.appendChild(section);
   });
 }
 
-function doReset(){
-  if(!confirm('🚨 警告 Warning:\n彻底清空云端数据库，恢复默认系统？\nWipe cloud DB and reset?')) return;
-  ITEMS = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
-  CATS = JSON.parse(JSON.stringify(DEFAULT_CATS));
-  checked = {};
-  ITEMS.forEach(it => { quantities[it.id] = it.qty; });
-  render();
-  saveDataToCloud(); 
+function filterItems(val) {
+  currentSearchQuery = val.toLowerCase().trim();
+  renderDashboard();
 }
 
-function render(){
-  const inv = document.getElementById('inv');
-  inv.innerHTML = CATS.map(cat=>{
-    const items = ITEMS.filter(i=>i.cat===cat.id);
-    
-    // 如果不在管理模式，且该分类下没有任何物品，则直接隐藏该分类
-    if(!isEditMode && items.length === 0) return '';
-
-    let html = '<div class="cat-block" id="cat-'+cat.id+'" style="border:1.5px solid '+cat.border+'">'
-      +'<div class="cat-head" style="background:'+cat.bg+';border-color:'+cat.border+'">'
-      +'<span class="cat-name" style="color:'+cat.color+'">'+cat.name+'</span>'
-      +'<span class="cat-badge" style="background:'+cat.color+'">'+items.length+' 项</span></div>';
-      
-      html += items.map(item=>{
-        const q = getQty(item.id);
-        const qc = (q===0||q==='0') ? '#ef4444' : cat.color;
-        const isLow = !isNaN(q) && Number(q)<=item.low && Number(q)>0;
-        const isChecked = !!checked[item.id];
-        
-        // 核心：如果是管理模式，显示 ✎ 编辑按钮，否则显示打勾方块
-        const actionBtn = isEditMode 
-          ? '<div class="edit-btn" onclick="editItemData(\''+item.id+'\')">✎</div>'
-          : '<div class="chk" onclick="toggleCheck(\''+item.id+'\')"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
-
-        return '<div class="row'+(isLow?' low-stock':'')+(isChecked && !isEditMode?' done':'')+'" data-id="'+item.id+'">'
-          + actionBtn
-          +'<span class="ricon" '+(isEditMode? 'onclick="editItemData(\''+item.id+'\')"' : '')+'>'+item.icon+'</span>'
-          +'<div class="rtext-wrap"><div class="rname">'+item.name+'</div>'+(item.sub?'<div class="rsub">'+item.sub+'</div>':'')+'</div>'
-          +'<div class="qty-wrap">'
-          +'<span id="d-'+item.id+'" class="qty-disp" style="color:'+qc+';background:'+cat.bg+'" onclick="startEdit(\''+item.id+'\')">'+q+' '+item.unit+'</span>'
-          +'<input id="e-'+item.id+'" class="qty-inp" type="text" onblur="finishEdit(\''+item.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\'Escape\')finishEdit(\''+item.id+'\')">'
-          +'</div></div>';
-      }).join('');
-      
-      // 在管理模式下，每个分类底部添加“新增物品”按钮
-      if (isEditMode) {
-        html += '<div class="add-item-btn" onclick="addItem(\''+cat.id+'\')">➕ 在此分类下添加新物品 Add Item</div>';
-      }
-      
-      html += '</div>';
-      return html;
-  }).join('');
-  
-  // 在管理模式下，页面最底部添加“新增分类”按钮
-  const catContainer = document.getElementById('add-cat-container');
-  if (isEditMode) {
-    catContainer.innerHTML = '<div class="add-cat-btn" onclick="addCategory()">📁 增加全新物资种类 Add New Category</div>';
-  } else {
-    catContainer.innerHTML = '';
+function resetSystemToFactoryDefault() {
+  if (confirm('⚠️ 重置系统(Factory Reset)\n这将从云端彻底清空数据库，所有人看到的进度都会恢复到工厂初始默认状态。\nThis will wipe the cloud DB, all device will restore to default data.\n\n确定执行吗？Proceed?')) {
+    useFactoryData();
+    checked = {};
+    saveDataToCloud();
+    renderDashboard();
   }
-
-  updateProgress();
 }
 
+// 工厂数据预设 (中英双语单位及名称提示)
+function useFactoryData() {
+  cats = [
+    {id:"cleaning", name:"🧴 清洁用品 Cleaning", color:"#2563eb", bg:"#eff6ff", textColor:"#2563eb"},
+    {id:"paint",    name:"🎨 油漆喷漆 Paint",     color:"#7c3aed", bg:"#f5f3ff", textColor:"#7c3aed"},
+    {id:"safety",   name:"🦺 安全设备 Safety",    color:"#059669", bg:"#ecfdf5", textColor:"#059669"},
+    {id:"tools",    name:"🔧 工具器材 Tools",     color:"#d97706", bg:"#fffbeb", textColor:"#d97706"},
+    {id:"materials",name:"📦 材料耗材 Materials", color:"#dc2626", bg:"#fef2f2", textColor:"#dc2626"},
+  ];
+  items = [
+    {id:"mr_muscle",   cat:"cleaning", icon:"🧴", name:"威猛先生 Mr. Muscle",          sub:"多功能清洁剂",      unit:"个/pcs",  qty:8,  low:3},
+    {id:"clorox",      cat:"cleaning", icon:"🫧", name:"高乐氏漂白水 Clorox Bleach",   sub:"消毒漂白剂",        unit:"个/pcs",  qty:18, low:5},
+    {id:"washing_pwd", cat:"cleaning", icon:"🧺", name:"洗衣粉 Washing Powder",        sub:"1包=5kg",          unit:"包/pack", qty:12, low:3},
+    {id:"spray_black", cat:"paint",    icon:"🖤", name:"喷漆 (黑) Spray Paint Black",   sub:"",                unit:"罐/can",  qty:10, low:3},
+    {id:"spray_white", cat:"paint",    icon:"🤍", name:"喷漆 (白) Spray Paint White",   sub:"",                unit:"罐/can",  qty:20, low:5},
+    {id:"fire_base",   cat:"safety",   icon:"🧯", name:"灭火器 Fire Extinguisher",      sub:"含底座",            unit:"套/set",  qty:20, low:5},
+    {id:"helmet_y",    cat:"safety",   icon:"⛑️", name:"安全帽 (黄) Helmet Yellow",     sub:"",                unit:"顶/pcs",  qty:6,  low:2},
+    {id:"glove_wb",    cat:"safety",   icon:"🧤", name:"手套 (白蓝) Gloves White/Blue", sub:"",                unit:"双/pair", qty:44, low:5},
+    {id:"disc_107",    cat:"tools",    icon:"⚙️", name:"切割片 Cutting Disc 107mm",     sub:"107×1.2×16mm",    unit:"片/pcs",  qty:70, low:10},
+    {id:"tape_by",     cat:"materials",icon:"📦", name:"警示胶带 (黑黄) Warning Tape",  sub:"",                unit:"卷/roll", qty:11, low:3},
+  ];
+}
+
+// 初始化
+initEmojiGrid();
 initData();
 </script>
 </body>
