@@ -1,57 +1,36 @@
+import { sql } from '@vercel/postgres';
+
 export default async function handler(req, res) {
-  const url = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
+  try {
+    // 1. 初始化：如果数据库里没有表，就自动建一个叫 inventory_data 的表
+    await sql`CREATE TABLE IF NOT EXISTS inventory_data (id INT PRIMARY KEY, content JSONB)`;
 
-  if (!url || !token) {
-    return res.status(500).json({ error: "环境变量 KV_REST_API_URL 或 KV_REST_API_TOKEN 缺失" });
-  }
-
-  if (req.method === 'GET') {
-    try {
-      const response = await fetch(`${url}/get/safetystock`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await response.json();
-      let parsed = data.result;
-      
-      if (!parsed) return res.status(200).json(null);
-      
-      if (typeof parsed === 'string') parsed = JSON.parse(parsed);
-      if (typeof parsed === 'string') parsed = JSON.parse(parsed);
-      
-      return res.status(200).json(parsed);
-    } catch (error) {
-      return res.status(500).json({ error: "GET 读取异常: " + error.message });
-    }
-  }
-
-  if (req.method === 'POST') {
-    try {
-      const valueStr = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(["SET", "safetystock", valueStr])
-      });
-      
-      const text = await response.text(); // 先读取纯文本，防止 JSON 解析报错
-      
-      try {
-        const result = JSON.parse(text);
-        if (result.error) {
-           return res.status(500).json({ error: "KV 数据库返回错误: " + result.error });
-        }
-        return res.status(200).json({ success: true, debug: text });
-      } catch (parseErr) {
-        return res.status(500).json({ error: "KV 数据库返回了非 JSON 格式: " + text });
+    // 2. GET 请求：读取数据
+    if (req.method === 'GET') {
+      const { rows } = await sql`SELECT content FROM inventory_data WHERE id = 1`;
+      if (rows.length > 0) {
+        return res.status(200).json(rows[0].content);
+      } else {
+        return res.status(200).json(null); // 表是空的
       }
-      
-    } catch (error) {
-      return res.status(500).json({ error: "POST 写入异常: " + error.message });
     }
+
+    // 3. POST 请求：更新数据
+    if (req.method === 'POST') {
+      const data = req.body;
+      
+      // SQL 语法：插入数据，如果 id=1 已经存在，就覆盖更新它
+      await sql`
+        INSERT INTO inventory_data (id, content)
+        VALUES (1, ${JSON.stringify(data)})
+        ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content
+      `;
+      
+      return res.status(200).json({ success: true });
+    }
+
+  } catch (error) {
+    console.error("数据库操作失败:", error);
+    return res.status(500).json({ error: error.message });
   }
 }
