@@ -156,17 +156,25 @@ async function initData() {
 
 async function saveDataToCloud() {
   statusEl.textContent = '⏳ 保存中...';
-  // 更新主数组
+  
+  // 更新主数组中的库存数量
   ITEMS.forEach(it => { it.qty = quantities[it.id]; });
 
   try {
-    await fetch('/api/sync', {
+    const response = await fetch('/api/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items: ITEMS, checked: checked })
     });
+    
+    // 严格检查：只要后端没返回 200 OK，就直接抛出错误
+    if (!response.ok) {
+      throw new Error('写入云端失败');
+    }
+    
     statusEl.textContent = '🟢 已同步';
   } catch (error) {
+    console.error('保存错误:', error);
     statusEl.textContent = '🔴 同步失败';
   }
 }
