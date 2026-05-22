@@ -31,7 +31,10 @@ body{font-family:var(--font-sans);background:#f8fafc}
 .header{padding:14px 16px 8px;border-bottom:0.5px solid var(--color-border-tertiary);position:sticky;top:0;background:var(--color-background-primary);z-index:20}
 .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .title{font-size:17px;font-weight:700;color:var(--color-text-primary)}
-.saved-tag{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+/* 恢复同步指示灯样式 */
+.sync-status{font-size:11px;font-weight:600;color:var(--color-text-info);margin-top:2px;background:var(--color-background-info);display:inline-block;padding:2px 8px;border-radius:10px;}
+.sync-status.offline{color:var(--color-text-danger);background:var(--color-background-danger);}
+.sync-status.synced{color:var(--color-text-success);background:#ecfdf5;}
 .hbtns{display:flex;gap:6px}
 .hbtn{background:none;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 10px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px}
 .hbtn:active{opacity:.7}
@@ -105,7 +108,7 @@ body{font-family:var(--font-sans);background:#f8fafc}
   <div class="header-top">
     <div>
       <div class="title">📦 仓库清单 Inventory</div>
-      <div class="saved-tag" id="saved-tag">加载中…</div>
+      <div class="sync-status" id="sync-status">🔄 加载 Loading...</div>
     </div>
     <div class="hbtns">
       <button class="hbtn" onclick="openImport()">📥 导入</button>
@@ -152,13 +155,12 @@ const UNITS = [
   { v: 'unit', l: '台 / unit' }
 ];
 
-// 获取单位中文标签的辅助函数
 function getUnitLabel(v) {
   const u = UNITS.find(x => x.v === v);
   return u ? u.l : v;
 }
 
-// 2. 预设分类 (双语)
+// 2. 预设分类
 const DEFAULT_CATS = [
   {id:'cleaning',name:'清洁用品 Cleaning',color:'#dcf5ea'},
   {id:'paint',name:'油漆喷漆 Paint',color:'#faecea'},
@@ -167,7 +169,7 @@ const DEFAULT_CATS = [
   {id:'materials',name:'材料耗材 Materials',color:'#eaf3de'},
 ];
 
-// 3. 预设物品：强制双语 + 匹配下拉菜单的单位 (v) + 保留你提供的原始库存数量
+// 3. 预设物品：保留了所有的原始数量
 const DEFAULT_ITEMS = [
   {id:'mr_muscle',cat:'cleaning',name:'威猛先生 Mr. Muscle',sub:'多功能清洁剂',unit:'biji',qty:8,low:3,icon:'🧴'},
   {id:'clorox',cat:'cleaning',name:'高乐氏漂白水 Clorox Bleach',sub:'消毒漂白剂',unit:'biji',qty:18,low:5,icon:'🫧'},
@@ -227,28 +229,60 @@ let state = {cats:[...DEFAULT_CATS],items:[...DEFAULT_ITEMS.map(i=>({...i}))],hi
 let activeTab='inv';
 let showLow=false;
 let editingQtyId=null;
+const syncStatusEl = document.getElementById('sync-status');
 
+// API 同步逻辑完美回归
 async function load(){
   try{
-    const r=await window.storage.get('wh_v2');
-    if(r&&r.value){
-      const d=JSON.parse(r.value);
-      if(d.cats) state.cats=d.cats;
-      if(d.items) state.items=d.items;
-      if(d.history) state.history=d.history;
-      if(d.collapsed) state.collapsed=d.collapsed;
+    const res = await fetch('/api/sync');
+    const cloudData = await res.json();
+    
+    if(cloudData && cloudData.items && cloudData.items.length > 0) {
+      state.items = cloudData.items;
+      state.cats = cloudData.cats || state.cats;
+      state.history = cloudData.history || [];
+      state.collapsed = cloudData.collapsed || {};
+    } else {
+      // 如果云端是空的，把我们现在的默认资料存上去
+      await saveSilent();
     }
-  }catch(e){}
+    
+    syncStatusEl.textContent = '🟢 已同步 Synced';
+    syncStatusEl.className = 'sync-status synced';
+  }catch(e){
+    console.error('API Load Error:', e);
+    syncStatusEl.textContent = '🔴 离线 Offline';
+    syncStatusEl.className = 'sync-status offline';
+  }
   renderStats();render();
-  document.getElementById('saved-tag').textContent='就绪 Ready';
+}
+
+async function saveSilent(){
+  try{
+    const response = await fetch('/api/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cats: state.cats, items: state.items, history: state.history.slice(-300), collapsed: state.collapsed })
+    });
+    if (!response.ok) throw new Error('API Sync failed');
+    return true;
+  }catch(e){
+    return false;
+  }
 }
 
 async function save(){
-  try{
-    await window.storage.set('wh_v2',JSON.stringify({cats:state.cats,items:state.items,history:state.history.slice(-300),collapsed:state.collapsed}));
-    const now=new Date();
-    document.getElementById('saved-tag').textContent='已保存 '+now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-  }catch(e){}
+  syncStatusEl.textContent = '⏳ 保存中 Saving...';
+  syncStatusEl.className = 'sync-status';
+  
+  const success = await saveSilent();
+  if(success){
+    syncStatusEl.textContent = '🟢 已同步 Synced';
+    syncStatusEl.className = 'sync-status synced';
+  } else {
+    syncStatusEl.textContent = '🔴 同步失败 Failed';
+    syncStatusEl.className = 'sync-status offline';
+  }
 }
 
 function renderStats(){
@@ -322,7 +356,6 @@ function renderHist(){
     const sign=h.delta>0?'+':'';
     const col=h.delta>0?'var(--color-text-success)':'var(--color-text-danger)';
     const time=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
-    // 历史记录也显示双语标签
     const unitLabel = getUnitLabel(h.unit);
     html+=`<div class="hist-row">
       <div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--color-text-primary)">${h.name}</div><div style="font-size:12px;color:var(--color-text-tertiary)">${time}</div></div>
@@ -361,10 +394,8 @@ function switchTab(t){
   render();
 }
 
-// 纯下拉菜单选择单位
 function openEditUnit(id){
   const it=state.items.find(i=>i.id===id);if(!it)return;
-  
   const optionsHtml = UNITS.map(u => `<option value="${u.v}" ${u.v === it.unit ? 'selected' : ''}>${u.l}</option>`).join('');
 
   document.getElementById('sheet').innerHTML=`
@@ -387,7 +418,6 @@ function saveUnit(id){
   save();closeSheet();render();toast('✅ 单位已更新');
 }
 
-// 纯下拉菜单选择单位
 function openEditItem(id){
   const it=state.items.find(i=>i.id===id);if(!it)return;
   const unitOptions = UNITS.map(u => `<option value="${u.v}" ${u.v === it.unit ? 'selected' : ''}>${u.l}</option>`).join('');
@@ -440,7 +470,6 @@ function deleteItem(id){
   save();closeSheet();renderStats();render();toast('🗑️ 已删除');
 }
 
-// 纯下拉菜单选择单位
 function openAddItem(catId){
   selIconVal='🏷️';
   const unitOptions = UNITS.map(u => `<option value="${u.v}">${u.l}</option>`).join('');
