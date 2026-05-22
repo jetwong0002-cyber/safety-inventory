@@ -74,7 +74,7 @@ body{font-family:var(--font-sans);background:#f8fafc}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--color-background-primary);border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 -4px 20px rgba(0,0,0,0.1)}
 .sheet-title{font-size:16px;font-weight:700;color:var(--color-text-primary);margin-bottom:4px;text-align:center}
-.sheet-sub{font-size:12px;color:var(--color-text-tertiary);margin-bottom:16px;text-align:center}
+.sheet-sub{font-size:12px;color:var(--text-tertiary);margin-bottom:16px;text-align:center}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:4px}
 .field input,.field select,.field textarea{width:100%;border:1.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:14px;background:var(--color-background-primary);color:var(--color-text-primary)}
@@ -136,7 +136,7 @@ body{font-family:var(--font-sans);background:#f8fafc}
 <div class="toast" id="toast"></div>
 
 <script>
-// 1. 固定不可手写的常见单位列表 (双语)
+// 1. 固定不可手写的常见单位列表 (双语) - 已改为 桶 / Tong
 const UNITS = [
   { v: 'pcs', l: '个 / pcs' },
   { v: 'pack', l: '包 / pack' },
@@ -151,11 +151,14 @@ const UNITS = [
   { v: 'strip', l: '条 / strip' },
   { v: 'kg', l: '公斤 / kg' },
   { v: 'liter', l: '升 / liter' },
-  { v: 'unit', l: '台 / unit' }
+  { v: 'unit', l: '台 / unit' },
+  { v: 'tong', l: '桶 / Tong' }
 ];
 
 function getUnitLabel(v) {
   const u = UNITS.find(x => x.v === v);
+  // 为了兼容之前的 'pail' 旧数据，给它一个后备显示
+  if (v === 'pail') return '桶 / Tong'; 
   return u ? u.l : v;
 }
 
@@ -179,9 +182,9 @@ const DEFAULT_ITEMS = [
   {id:'spray_white',cat:'paint',name:'喷漆(白) Spray Paint White',sub:'',unit:'can',qty:20,low:5,icon:'🤍'},
   {id:'spray_blue',cat:'paint',name:'喷漆(蓝) Spray Paint Blue',sub:'',unit:'can',qty:8,low:3,icon:'💙'},
   {id:'spray_red',cat:'paint',name:'喷漆(红) Spray Paint Red',sub:'',unit:'can',qty:5,low:3,icon:'❤️'},
-  {id:'propaint_white',cat:'paint',name:'白漆 Pro-Paint White',sub:'1桶/pail=5L',unit:'can',qty:4,low:2,icon:'🪣'},
-  {id:'propaint_red',cat:'paint',name:'红漆 Pro-Paint Red',sub:'1桶/pail=5L',unit:'can',qty:4,low:2,icon:'🪣'},
-  {id:'propaint_blue',cat:'paint',name:'蓝漆 Pro-Paint Blue',sub:'1桶/pail=5L',unit:'can',qty:1,low:2,icon:'🪣'},
+  {id:'propaint_white',cat:'paint',name:'白漆 Pro-Paint White',sub:'1桶/Tong=5L',unit:'tong',qty:4,low:2,icon:'🪣'},
+  {id:'propaint_red',cat:'paint',name:'红漆 Pro-Paint Red',sub:'1桶/Tong=5L',unit:'tong',qty:4,low:2,icon:'🪣'},
+  {id:'propaint_blue',cat:'paint',name:'蓝漆 Pro-Paint Blue',sub:'1桶/Tong=5L',unit:'tong',qty:1,low:2,icon:'🪣'},
   {id:'fire_ext',cat:'safety',name:'灭火器 Fire Extinguisher',sub:'基座 Base',unit:'unit',qty:20,low:5,icon:'🧯'},
   {id:'helmet_yellow',cat:'safety',name:'安全帽(黄) Helmet Yellow',sub:'',unit:'pcs',qty:25,low:2,icon:'⛑️'},
   {id:'helmet_white',cat:'safety',name:'安全帽(白) Helmet White',sub:'',unit:'pcs',qty:32,low:2,icon:'⛑️'},
@@ -230,39 +233,33 @@ let showLow=false;
 let editingQtyId=null;
 const syncStatusEl = document.getElementById('sync-status');
 
-// API 同步逻辑完美回归
-// API 同步逻辑完美回归
+// API 同步逻辑与智能清洗合并
 async function load(){
   try{
     const res = await fetch('/api/sync');
     const cloudData = await res.json();
     
     if(cloudData && cloudData.items && cloudData.items.length > 0) {
-      // 🌟 核心修复：智能合并数据 
-      // 保留云端你真实记录的库存数量 (qty)
-      // 但强制用最新的 DEFAULT_ITEMS 覆盖名字 (name)、备注 (sub) 和单位 (unit)
+      // 智能比对：保留真实数量，强制覆盖最新双语文字及单位定义
       state.items = cloudData.items.map(cloudItem => {
         const defItem = DEFAULT_ITEMS.find(d => d.id === cloudItem.id);
         if(defItem) {
           return {
             ...cloudItem,
-            name: defItem.name, // 强制更新为双语名字
-            sub: defItem.sub,   // 强制更新为双语备注
-            unit: defItem.unit  // 强制修正底层单位代码，确保能匹配到双语
+            name: defItem.name, 
+            sub: defItem.sub,   
+            unit: defItem.unit  
           };
         }
-        return cloudItem; // 如果是你后来手动新增的物品，保持原样
+        return cloudItem;
       });
       
       state.cats = cloudData.cats || state.cats;
       state.history = cloudData.history || [];
       state.collapsed = cloudData.collapsed || {};
 
-      // 把修复好的双语数据静默覆盖保存回你的云端服务器
       await saveSilent();
-
     } else {
-      // 如果云端是空的，把我们现在的默认资料存上去
       await saveSilent();
     }
     
