@@ -44,7 +44,8 @@ body{font-family:var(--font-sans);background:#f8fafc}
 .sw input:focus{outline:none;border-color:var(--color-border-info)}
 .fbtn{border:0.5px solid var(--color-border-tertiary);background:none;border-radius:var(--border-radius-md);padding:8px 10px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;white-space:nowrap}
 .fbtn.on{background:var(--color-background-danger);color:var(--color-text-danger);border-color:var(--color-border-danger)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
+/* 调整为两格显示 */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
 .stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px;text-align:center}
 .stat-v{font-size:18px;font-weight:700;color:var(--color-text-primary)}
 .stat-l{font-size:11px;color:var(--color-text-secondary);margin-top:1px}
@@ -136,7 +137,7 @@ body{font-family:var(--font-sans);background:#f8fafc}
 <div class="toast" id="toast"></div>
 
 <script>
-// 1. 固定不可手写的常见单位列表 (双语) - 已改为 桶 / Tong
+// 1. 固定不可手写的常见单位列表 (双语) - 包含 桶 / Tong
 const UNITS = [
   { v: 'pcs', l: '个 / pcs' },
   { v: 'pack', l: '包 / pack' },
@@ -157,7 +158,6 @@ const UNITS = [
 
 function getUnitLabel(v) {
   const u = UNITS.find(x => x.v === v);
-  // 为了兼容之前的 'pail' 旧数据，给它一个后备显示
   if (v === 'pail') return '桶 / Tong'; 
   return u ? u.l : v;
 }
@@ -171,7 +171,7 @@ const DEFAULT_CATS = [
   {id:'materials',name:'材料耗材 Materials',color:'#eaf3de'},
 ];
 
-// 3. 预设物品：保留了所有的原始数量，已全面更新为双语
+// 3. 预设物品：双语更新
 const DEFAULT_ITEMS = [
   {id:'mr_muscle',cat:'cleaning',name:'威猛先生 Mr. Muscle',sub:'多功能清洁剂 Multi-purpose Cleaner',unit:'biji',qty:8,low:3,icon:'🧴'},
   {id:'clorox',cat:'cleaning',name:'高乐氏漂白水 Clorox Bleach',sub:'消毒漂白剂 Disinfectant Bleach',unit:'biji',qty:18,low:5,icon:'🫧'},
@@ -302,11 +302,10 @@ async function save(){
 }
 
 function renderStats(){
-  const total=state.items.reduce((a,i)=>a+i.qty,0);
+  // 移除了总数显示，改为两栏平分
   let low=0;state.items.forEach(i=>{if(i.qty<=i.low)low++;});
   document.getElementById('stats').innerHTML=`
     <div class="stat"><div class="stat-v">${state.items.length}</div><div class="stat-l">种类 Types</div></div>
-    <div class="stat"><div class="stat-v">${total}</div><div class="stat-l">总数 Total</div></div>
     <div class="stat"><div class="stat-v" style="color:${low>0?'var(--color-text-danger)':'var(--color-text-success)'}">${low}</div><div class="stat-l">低库存 Low</div></div>`;
 }
 
