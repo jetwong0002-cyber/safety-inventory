@@ -18,6 +18,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f8fafc;min-height:100vh
 
 .toolbar{display:flex;gap:8px;margin-bottom:12px}
 .search{flex:1;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.btn-toggle-edit{background:#3b82f6;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;box-shadow:0 1px 4px rgba(59,130,246,.3);}
+.btn-toggle-edit.active{background:#ef4444;box-shadow:0 1px 4px rgba(239,68,68,.3);}
+
 .btn-reset{background:#fff;color:#64748b;border:1.5px solid #e2e8f0; width: 100%; padding:12px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; margin-top: 14px;}
 .tip{text-align:center;font-size:11px;color:#64748b;margin-bottom:12px; line-height: 1.5;}
 
@@ -29,12 +32,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f8fafc;min-height:100vh
 .row:last-child{border-bottom:none}
 .row.done{background:#f0fdf4}
 .row.done .rname{text-decoration:line-through;color:#86efac}
-.row.low-stock .rname::after{content:" ⚠️ Low Stock";font-size:10px;color:#d97706;margin-left:6px;background:#fffbeb;padding:2px 6px;border-radius:4px;}
+.row.low-stock .rname::after{content:" ⚠️ Low";font-size:10px;color:#d97706;margin-left:6px;background:#fffbeb;padding:2px 6px;border-radius:4px;}
+
 .chk{width:22px;height:22px;border-radius:6px;border:2px solid #cbd5e1;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;cursor:pointer;user-select:none;transition:all .15s}
 .chk svg{display:none}
 .row.done .chk{background:#16a34a;border-color:#16a34a}
 .row.done .chk svg{display:block}
-.ricon{font-size:18px;margin-right:10px;flex-shrink:0}
+
+.edit-btn{width:22px;height:22px;border-radius:6px;background:#f1f5f9;color:#64748b;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;cursor:pointer;font-size:12px;border:1.5px solid #cbd5e1;}
+.edit-btn:active{background:#e2e8f0;}
+
+.ricon{font-size:18px;margin-right:10px;flex-shrink:0;cursor:pointer;}
 .rtext-wrap{flex:1;min-width:0;padding-right:8px;}
 .rname{font-size:14px;color:#1e293b;font-weight:600;line-height:1.3;margin-bottom:2px;}
 .rsub{font-size:11px;color:#94a3b8;line-height:1.2;}
@@ -42,6 +50,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f8fafc;min-height:100vh
 .qty-disp{font-size:14px;font-weight:700;padding:4px 10px;border-radius:8px;display:inline-block;cursor:pointer;border:1.5px dashed transparent;transition:border .15s;user-select:none}
 .qty-disp:hover{border-color:currentColor}
 .qty-inp{font-size:14px;font-weight:700;padding:4px 8px;border-radius:8px;border:2px solid #2563eb;outline:none;width:80px;text-align:center;display:none}
+
+.add-item-btn{display:block;width:100%;padding:10px;text-align:center;background:#f8fafc;color:#3b82f6;font-size:13px;font-weight:600;cursor:pointer;border-top:1px dashed #cbd5e1;}
+.add-cat-btn{display:block;width:100%;padding:14px;text-align:center;background:#fff;border:2px dashed #cbd5e1;color:#64748b;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:14px;}
 .hidden{display:none!important}
 </style>
 </head>
@@ -57,108 +68,83 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f8fafc;min-height:100vh
 
   <div class="toolbar">
     <input class="search" type="text" placeholder="🔍 搜索物品 / Search items..." oninput="doSearch(this.value)">
+    <button class="btn-toggle-edit" id="btn-edit" onclick="toggleEditMode()">🛠️ 管理 Admin</button>
   </div>
-  <div class="tip">
-    ✅ 勾选方块表示已盘点 (Tick box when counted)<br>
-    ✏️ 点击数字可修改数量 (Click quantity to edit)
+  
+  <div class="tip" id="normal-tip">
+    ✅ 勾选方块表示已盘点 (Tick to mark counted)<br>
+    ✏️ 点击数字修改库存 (Click quantity to update)
+  </div>
+  <div class="tip hidden" id="edit-tip" style="color:#ef4444; font-weight:bold;">
+    ⚠️ 管理模式已开启: 可随意修改名称、单位、添加新物品
   </div>
 
   <div id="inv"></div>
-  <button class="btn-reset" onclick="doReset()">🚨 重置系统 / Reset to Factory Default</button>
+  <div id="add-cat-container"></div>
+  
+  <button class="btn-reset" onclick="doReset()">🚨 恢复出厂设置 / Factory Reset</button>
 </div>
 <script>
-const CATS = [
-  {id:"cleaning", name:"🧴 清洁用品 Cleaning Supplies", color:"#2563eb", bg:"#eff6ff", border:"#bfdbfe"},
-  {id:"paint",    name:"🎨 油漆喷漆 Paint & Spray",     color:"#7c3aed", bg:"#f5f3ff", border:"#ddd6fe"},
-  {id:"safety",   name:"🦺 安全设备 Safety Equipment",  color:"#059669", bg:"#ecfdf5", border:"#a7f3d0"},
-  {id:"tools",    name:"🔧 工具器材 Tools & Hardware",  color:"#d97706", bg:"#fffbeb", border:"#fde68a"},
-  {id:"materials",name:"📦 材料耗材 Materials & Consumables",color:"#dc2626", bg:"#fef2f2", border:"#fecaca"},
+// 默认分类数据
+const DEFAULT_CATS = [
+  {id:"cleaning", name:"🧴 清洁用品 Cleaning", color:"#2563eb", bg:"#eff6ff", border:"#bfdbfe"},
+  {id:"paint",    name:"🎨 油漆喷漆 Paint",     color:"#7c3aed", bg:"#f5f3ff", border:"#ddd6fe"},
+  {id:"safety",   name:"🦺 安全设备 Safety",    color:"#059669", bg:"#ecfdf5", border:"#a7f3d0"},
+  {id:"tools",    name:"🔧 工具器材 Tools",     color:"#d97706", bg:"#fffbeb", border:"#fde68a"},
+  {id:"materials",name:"📦 材料耗材 Materials", color:"#dc2626", bg:"#fef2f2", border:"#fecaca"},
 ];
 
+// 默认物资数据（单位全部替换为中英双语提示）
 const DEFAULT_ITEMS = [
-  // Cleaning Supplies
-  {id:"mr_muscle",   cat:"cleaning", icon:"🧴", name:"威猛先生 Mr. Muscle",          sub:"多功能清洁剂 / Multi-purpose",      unit:"pcs",  qty:8,  low:3},
-  {id:"clorox",      cat:"cleaning", icon:"🫧", name:"高乐氏漂白水 Clorox Bleach",   sub:"消毒漂白剂 / Disinfectant",        unit:"pcs",  qty:18, low:5},
-  {id:"degreaser",   cat:"cleaning", icon:"🧹", name:"碱性除油剂 Alkaline Degreaser",sub:"工业脱脂剂 / Industrial Degreaser", unit:"pcs",  qty:3,  low:2},
-  {id:"washing_pwd", cat:"cleaning", icon:"🧺", name:"洗衣粉 Washing Powder",        sub:"1包=5kg / 1 pack=5kg",            unit:"pack", qty:12, low:3},
-  {id:"freshener",   cat:"cleaning", icon:"🌸", name:"空气清新剂 Room Freshener",    sub:"P-585",                          unit:"pcs",  qty:2,  low:2},
-  
-  // Paint
-  {id:"spray_black", cat:"paint",    icon:"🖤", name:"喷漆 (黑) Spray Paint Black",   sub:"", unit:"pcs",  qty:10, low:3},
-  {id:"spray_white", cat:"paint",    icon:"🤍", name:"喷漆 (白) Spray Paint White",   sub:"", unit:"pcs",  qty:20, low:5},
-  {id:"spray_blue",  cat:"paint",    icon:"💙", name:"喷漆 (蓝) Spray Paint Blue",    sub:"", unit:"pcs",  qty:8,  low:3},
-  {id:"spray_red",   cat:"paint",    icon:"❤️", name:"喷漆 (红) Spray Paint Red",     sub:"", unit:"pcs",  qty:5,  low:3},
-  {id:"pp_white",    cat:"paint",    icon:"🪣", name:"专业漆 (白) Pro-Paint White",   sub:"1桶=5L / 1 pail=5L", unit:"pail", qty:4,  low:2},
-  {id:"pp_red",      cat:"paint",    icon:"🪣", name:"专业漆 (红) Pro-Paint Red",     sub:"1桶=5L / 1 pail=5L", unit:"pail", qty:4,  low:2},
-  {id:"pp_blue",     cat:"paint",    icon:"🪣", name:"专业漆 (蓝) Pro-Paint Blue",    sub:"1桶=5L / 1 pail=5L", unit:"pail", qty:1,  low:2},
-  
-  // Safety Equipment
-  {id:"fire_base",   cat:"safety",   icon:"🧯", name:"灭火器 Fire Extinguisher",      sub:"含底座 / with base", unit:"pcs",  qty:20, low:5},
-  {id:"helmet_y",    cat:"safety",   icon:"⛑️", name:"安全帽 (黄) Helmet Yellow",     sub:"", unit:"pcs",  qty:6,  low:2},
-  {id:"helmet_w",    cat:"safety",   icon:"⛑️", name:"安全帽 (白) Helmet White",      sub:"", unit:"pcs",  qty:6,  low:2},
-  {id:"helmet_r",    cat:"safety",   icon:"⛑️", name:"安全帽 (红) Helmet Red",        sub:"", unit:"pcs",  qty:7,  low:2},
-  {id:"rain_coat",   cat:"safety",   icon:"🧥", name:"雨衣 Rain Coat",                sub:"", unit:"pcs",  qty:80, low:10},
-  {id:"wp_jacket",   cat:"safety",   icon:"🧥", name:"防水夹克 Waterproof Jacket",    sub:"", unit:"set",  qty:21, low:3},
-  {id:"boot_39",     cat:"safety",   icon:"🥾", name:"安全靴 Safety Boot - Size 39",  sub:"", unit:"pairs",qty:11, low:3},
-  {id:"boot_40",     cat:"safety",   icon:"🥾", name:"安全靴 Safety Boot - Size 40",  sub:"", unit:"pairs",qty:20, low:3},
-  {id:"boot_41",     cat:"safety",   icon:"🥾", name:"安全靴 Safety Boot - Size 41",  sub:"", unit:"pairs",qty:1,  low:3},
-  {id:"boot_42",     cat:"safety",   icon:"🥾", name:"安全靴 Safety Boot - Size 42",  sub:"", unit:"pairs",qty:5,  low:3},
-  {id:"boot_43",     cat:"safety",   icon:"🥾", name:"安全靴 Safety Boot - Size 43",  sub:"", unit:"pairs",qty:6,  low:3},
-  {id:"boot_44",     cat:"safety",   icon:"🥾", name:"安全靴 Safety Boot - Size 44",  sub:"", unit:"pairs",qty:13, low:3},
-  {id:"boot_45",     cat:"safety",   icon:"🥾", name:"安全靴 Safety Boot - Size 45",  sub:"", unit:"pairs",qty:22, low:3},
-  {id:"boot_46",     cat:"safety",   icon:"🥾", name:"安全靴 Safety Boot - Size 46",  sub:"", unit:"pairs",qty:14, low:3},
-  {id:"vest_lg",     cat:"safety",   icon:"🦺", name:"背心 (浅绿) Vest Light Green",  sub:"", unit:"pcs",  qty:5,  low:2},
-  {id:"vest_dg",     cat:"safety",   icon:"🦺", name:"背心 (深绿) Vest Dark Green",   sub:"", unit:"pcs",  qty:15, low:2},
-  {id:"vest_grey",   cat:"safety",   icon:"🦺", name:"背心 (灰色) Vest Grey",         sub:"", unit:"pcs",  qty:20, low:2},
-  {id:"vest_red",    cat:"safety",   icon:"🦺", name:"背心 (红色) Vest Red",          sub:"", unit:"pcs",  qty:17, low:2},
-  {id:"vest_yellow", cat:"safety",   icon:"🦺", name:"背心 (黄色) Vest Yellow",       sub:"", unit:"pcs",  qty:0,  low:2},
-  {id:"vest_purple", cat:"safety",   icon:"🦺", name:"背心 (紫色) Vest Purple",       sub:"", unit:"pcs",  qty:0,  low:2},
-  {id:"glove_wb",    cat:"safety",   icon:"🧤", name:"手套 (白蓝) Gloves White/Blue", sub:"", unit:"pairs",qty:44, low:5},
-  {id:"glove_grey",  cat:"safety",   icon:"🧤", name:"手套 (灰色) Gloves Grey",       sub:"", unit:"pairs",qty:156,low:10},
-  
-  // Tools
-  {id:"loto_lock",   cat:"tools",    icon:"🔒", name:"LOTO 锁头 LOTO Lock",           sub:"停工安全锁 / Safety Padlock", unit:"pcs", qty:46, low:10},
-  {id:"disc_107",    cat:"tools",    icon:"⚙️", name:"切割片 Cutting Disc 107mm",     sub:"107×1.2×16mm",            unit:"pcs", qty:70, low:10},
-  {id:"disc_100",    cat:"tools",    icon:"⚙️", name:"切割片 Cutting Disc 100mm",     sub:"100×6×16mm",              unit:"pcs", qty:79, low:10},
-  {id:"tape_measure",cat:"tools",    icon:"📏", name:"卷尺 Measuring Tape KAKO",      sub:"",                        unit:"pcs", qty:8,  low:2},
-  {id:"battery",     cat:"tools",    icon:"🔋", name:"碱性电池 Greencell Battery",    sub:"1包=2粒 / 1 pack=2 pcs",    unit:"pack",qty:15, low:3},
-  {id:"lock_biasa",  cat:"tools",    icon:"🔑", name:"普通锁 Normal Padlock",         sub:"",                        unit:"pcs", qty:8,  low:2},
-  
-  // Materials
-  {id:"hose_blue",   cat:"materials",icon:"💧", name:"蓝水管 Sunny Hose Blue",        sub:"2\"×100M",                unit:"roll",qty:1,  low:1},
-  {id:"delineator",  cat:"materials",icon:"🚧", name:"反光路障 Delineator",           sub:"Reflective traffic cone", unit:"pcs", qty:20, low:5},
-  {id:"tape_by",     cat:"materials",icon:"📦", name:"警示胶带 (黑黄) Warning Tape",  sub:"Black & Yellow",          unit:"roll",qty:11, low:3},
-  {id:"tape_grey",   cat:"materials",icon:"📦", name:"警示胶带 (灰色) Warning Tape",  sub:"Grey",                    unit:"roll",qty:44, low:5},
-  {id:"bag_big",     cat:"materials",icon:"🛍️", name:"垃圾袋 (大黑) Plastic Bag Big", sub:"黑色 / Black",            unit:"pack",qty:39, low:5},
-  {id:"bag_small",   cat:"materials",icon:"🛍️", name:"垃圾袋 (小蓝) Plastic Bag Small",sub:"蓝色 / Blue",             unit:"pack",qty:7,  low:2},
-  {id:"flag_red",    cat:"materials",icon:"🚩", name:"旗帜 (红色) Flag Red",          sub:"",                        unit:"pcs", qty:24, low:5},
-  {id:"flag_green",  cat:"materials",icon:"🚩", name:"旗帜 (绿色) Flag Green",        sub:"",                        unit:"pcs", qty:2,  low:3},
+  {id:"mr_muscle",   cat:"cleaning", icon:"🧴", name:"威猛先生 Mr. Muscle",          sub:"多功能清洁剂",      unit:"个/pcs",  qty:8,  low:3},
+  {id:"clorox",      cat:"cleaning", icon:"🫧", name:"高乐氏漂白水 Clorox Bleach",   sub:"消毒漂白剂",        unit:"个/pcs",  qty:18, low:5},
+  {id:"degreaser",   cat:"cleaning", icon:"🧹", name:"碱性除油剂 Alkaline Degreaser",sub:"工业脱脂剂",        unit:"个/pcs",  qty:3,  low:2},
+  {id:"washing_pwd", cat:"cleaning", icon:"🧺", name:"洗衣粉 Washing Powder",        sub:"1包=5kg",          unit:"包/pack", qty:12, low:3},
+  {id:"spray_black", cat:"paint",    icon:"🖤", name:"喷漆 (黑) Spray Paint Black",   sub:"",                unit:"罐/can",  qty:10, low:3},
+  {id:"spray_white", cat:"paint",    icon:"🤍", name:"喷漆 (白) Spray Paint White",   sub:"",                unit:"罐/can",  qty:20, low:5},
+  {id:"pp_white",    cat:"paint",    icon:"🪣", name:"专业漆 (白) Pro-Paint White",   sub:"1桶=5L",           unit:"桶/pail", qty:4,  low:2},
+  {id:"fire_base",   cat:"safety",   icon:"🧯", name:"灭火器 Fire Extinguisher",      sub:"含底座",            unit:"套/set",  qty:20, low:5},
+  {id:"helmet_y",    cat:"safety",   icon:"⛑️", name:"安全帽 (黄) Helmet Yellow",     sub:"",                unit:"顶/pcs",  qty:6,  low:2},
+  {id:"boot_39",     cat:"safety",   icon:"🥾", name:"安全靴 Safety Boot - Size 39",  sub:"",                unit:"双/pair", qty:11, low:3},
+  {id:"vest_lg",     cat:"safety",   icon:"🦺", name:"背心 (浅绿) Vest Light Green",  sub:"",                unit:"件/pcs",  qty:5,  low:2},
+  {id:"glove_wb",    cat:"safety",   icon:"🧤", name:"手套 (白蓝) Gloves White/Blue", sub:"",                unit:"双/pair", qty:44, low:5},
+  {id:"loto_lock",   cat:"tools",    icon:"🔒", name:"LOTO 锁头 LOTO Lock",           sub:"停工安全锁",        unit:"个/pcs",  qty:46, low:10},
+  {id:"disc_107",    cat:"tools",    icon:"⚙️", name:"切割片 Cutting Disc 107mm",     sub:"107×1.2×16mm",    unit:"片/pcs",  qty:70, low:10},
+  {id:"tape_measure",cat:"tools",    icon:"📏", name:"卷尺 Measuring Tape KAKO",      sub:"",                unit:"个/pcs",  qty:8,  low:2},
+  {id:"battery",     cat:"tools",    icon:"🔋", name:"碱性电池 Greencell Battery",    sub:"1包=2粒",          unit:"包/pack", qty:15, low:3},
+  {id:"hose_blue",   cat:"materials",icon:"💧", name:"蓝水管 Sunny Hose Blue",        sub:"2\"×100M",        unit:"卷/roll", qty:1,  low:1},
+  {id:"tape_by",     cat:"materials",icon:"📦", name:"警示胶带 (黑黄) Warning Tape",  sub:"",                unit:"卷/roll", qty:11, low:3},
+  {id:"bag_big",     cat:"materials",icon:"🛍️", name:"垃圾袋 (大黑) Trash Bag Black", sub:"",                unit:"包/pack", qty:39, low:5},
 ];
 
+let CATS = [];
 let ITEMS = [];
 let checked = {};
 let quantities = {}; 
+let isEditMode = false; // 管理模式开关
 
 function getQty(id){ return quantities[id] !== undefined ? quantities[id] : ITEMS.find(i=>i.id===id).qty; }
 
 const statusEl = document.getElementById('sync-status');
 
+// 核心初始化：拉取云端数据时，顺便把动态分类也拉下来
 async function initData() {
   try {
     const res = await fetch('/api/sync');
     const data = await res.json();
     
-    if (data && data.items && data.items.length > 0 && data.items[0].qty !== undefined) {
+    if (data && data.items && data.items.length > 0) {
       ITEMS = data.items;
+      CATS = data.cats && data.cats.length > 0 ? data.cats : JSON.parse(JSON.stringify(DEFAULT_CATS));
       checked = data.checked || {};
     } else {
-      ITEMS = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
-      checked = {};
+      throw new Error("Empty DB");
     }
     statusEl.textContent = '🟢 已同步 Synced';
   } catch (error) {
     statusEl.textContent = '🔴 离线 Offline';
     ITEMS = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+    CATS = JSON.parse(JSON.stringify(DEFAULT_CATS));
   }
   
   ITEMS.forEach(it => { quantities[it.id] = it.qty; });
@@ -167,23 +153,90 @@ async function initData() {
 
 async function saveDataToCloud() {
   statusEl.textContent = '⏳ 保存中 Saving...';
-  
   ITEMS.forEach(it => { it.qty = quantities[it.id]; });
 
   try {
     const response = await fetch('/api/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: ITEMS, checked: checked })
+      // 现在将 CATS 分类也一起存入数据库，实现分类的动态增加
+      body: JSON.stringify({ items: ITEMS, cats: CATS, checked: checked })
     });
     
     if (!response.ok) throw new Error('Failed to save');
     statusEl.textContent = '🟢 已同步 Synced';
   } catch (error) {
-    console.error('Error:', error);
     statusEl.textContent = '🔴 同步失败 Failed';
   }
 }
+
+// ── 管理模式逻辑 ──
+function toggleEditMode() {
+  isEditMode = !isEditMode;
+  const btn = document.getElementById('btn-edit');
+  btn.classList.toggle('active', isEditMode);
+  btn.textContent = isEditMode ? '✅ 退出管理 Done' : '🛠️ 管理 Admin';
+  document.getElementById('normal-tip').classList.toggle('hidden', isEditMode);
+  document.getElementById('edit-tip').classList.toggle('hidden', !isEditMode);
+  render(); // 重新渲染界面
+}
+
+function addCategory() {
+  const newName = prompt("请输入新分类名称 (例如: 🚗 车辆配件 Vehicle Parts):");
+  if(!newName) return;
+  const newId = "cat_" + Date.now();
+  CATS.push({
+    id: newId, 
+    name: newName, 
+    color: "#475569", bg: "#f8fafc", border: "#cbd5e1" // 默认给一个低调的灰蓝色主题
+  });
+  saveDataToCloud();
+  render();
+}
+
+function addItem(catId) {
+  const newName = prompt("请输入新物品名称及英文 (例如: 铁丝网 Wire Mesh):");
+  if(!newName) return;
+  const newUnit = prompt("请输入物品单位及英文 (例如: 卷/roll, 个/pcs):", "个/pcs");
+  if(!newUnit) return;
+  
+  const newItemId = "item_" + Date.now();
+  ITEMS.push({
+    id: newItemId,
+    cat: catId,
+    icon: "🔹", // 默认图标
+    name: newName,
+    sub: "",
+    unit: newUnit,
+    qty: 0,
+    low: 5
+  });
+  quantities[newItemId] = 0;
+  saveDataToCloud();
+  render();
+}
+
+function editItemData(id) {
+  const item = ITEMS.find(i=>i.id === id);
+  if(!item) return;
+  
+  const newName = prompt("修改物品名称 Name:", item.name);
+  if(newName === null) return;
+  
+  const newUnit = prompt("修改单位 Unit:", item.unit);
+  if(newUnit === null) return;
+  
+  const newIcon = prompt("修改图标 Emoji:", item.icon);
+  if(newIcon === null) return;
+
+  item.name = newName.trim() !== "" ? newName : item.name;
+  item.unit = newUnit.trim() !== "" ? newUnit : item.unit;
+  item.icon = newIcon.trim() !== "" ? newIcon : item.icon;
+  
+  saveDataToCloud();
+  render();
+}
+// ─────────────────
 
 function updateProgress(){
   const total = ITEMS.length, done = Object.values(checked).filter(Boolean).length;
@@ -216,7 +269,6 @@ function finishEdit(id){
     const n = isNaN(v) ? v : Number(v);
     quantities[id] = n;
     disp.textContent = n + ' ' + ITEMS.find(i=>i.id===id).unit;
-    
     const row = document.querySelector('[data-id="'+id+'"]');
     const item = ITEMS.find(i=>i.id===id);
     if(row && item) row.classList.toggle('low-stock', !isNaN(n) && Number(n) <= item.low && Number(n) > 0);
@@ -243,8 +295,9 @@ function doSearch(q){
 }
 
 function doReset(){
-  if(!confirm('🚨 警告 Warning:\n这会彻底清空云端数据库并恢复默认库存。\nThis will wipe the cloud database and reset to default stock.\n\n确定继续吗？Are you sure to continue?')) return;
+  if(!confirm('🚨 警告 Warning:\n彻底清空云端数据库，恢复默认系统？\nWipe cloud DB and reset?')) return;
   ITEMS = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+  CATS = JSON.parse(JSON.stringify(DEFAULT_CATS));
   checked = {};
   ITEMS.forEach(it => { quantities[it.id] = it.qty; });
   render();
@@ -255,26 +308,53 @@ function render(){
   const inv = document.getElementById('inv');
   inv.innerHTML = CATS.map(cat=>{
     const items = ITEMS.filter(i=>i.cat===cat.id);
-    return '<div class="cat-block" id="cat-'+cat.id+'" style="border:1.5px solid '+cat.border+'">'
+    
+    // 如果不在管理模式，且该分类下没有任何物品，则直接隐藏该分类
+    if(!isEditMode && items.length === 0) return '';
+
+    let html = '<div class="cat-block" id="cat-'+cat.id+'" style="border:1.5px solid '+cat.border+'">'
       +'<div class="cat-head" style="background:'+cat.bg+';border-color:'+cat.border+'">'
       +'<span class="cat-name" style="color:'+cat.color+'">'+cat.name+'</span>'
-      +'<span class="cat-badge" style="background:'+cat.color+'">'+items.length+' 项/items</span></div>'
-      +items.map(item=>{
+      +'<span class="cat-badge" style="background:'+cat.color+'">'+items.length+' 项</span></div>';
+      
+      html += items.map(item=>{
         const q = getQty(item.id);
         const qc = (q===0||q==='0') ? '#ef4444' : cat.color;
         const isLow = !isNaN(q) && Number(q)<=item.low && Number(q)>0;
         const isChecked = !!checked[item.id];
-        return '<div class="row'+(isLow?' low-stock':'')+(isChecked?' done':'')+'" data-id="'+item.id+'">'
-          +'<div class="chk" onclick="toggleCheck(\''+item.id+'\')">'
-          +'<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'
-          +'<span class="ricon">'+item.icon+'</span>'
+        
+        // 核心：如果是管理模式，显示 ✎ 编辑按钮，否则显示打勾方块
+        const actionBtn = isEditMode 
+          ? '<div class="edit-btn" onclick="editItemData(\''+item.id+'\')">✎</div>'
+          : '<div class="chk" onclick="toggleCheck(\''+item.id+'\')"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
+
+        return '<div class="row'+(isLow?' low-stock':'')+(isChecked && !isEditMode?' done':'')+'" data-id="'+item.id+'">'
+          + actionBtn
+          +'<span class="ricon" '+(isEditMode? 'onclick="editItemData(\''+item.id+'\')"' : '')+'>'+item.icon+'</span>'
           +'<div class="rtext-wrap"><div class="rname">'+item.name+'</div>'+(item.sub?'<div class="rsub">'+item.sub+'</div>':'')+'</div>'
           +'<div class="qty-wrap">'
           +'<span id="d-'+item.id+'" class="qty-disp" style="color:'+qc+';background:'+cat.bg+'" onclick="startEdit(\''+item.id+'\')">'+q+' '+item.unit+'</span>'
           +'<input id="e-'+item.id+'" class="qty-inp" type="text" onblur="finishEdit(\''+item.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\'Escape\')finishEdit(\''+item.id+'\')">'
           +'</div></div>';
-      }).join('')+'</div>';
+      }).join('');
+      
+      // 在管理模式下，每个分类底部添加“新增物品”按钮
+      if (isEditMode) {
+        html += '<div class="add-item-btn" onclick="addItem(\''+cat.id+'\')">➕ 在此分类下添加新物品 Add Item</div>';
+      }
+      
+      html += '</div>';
+      return html;
   }).join('');
+  
+  // 在管理模式下，页面最底部添加“新增分类”按钮
+  const catContainer = document.getElementById('add-cat-container');
+  if (isEditMode) {
+    catContainer.innerHTML = '<div class="add-cat-btn" onclick="addCategory()">📁 增加全新物资种类 Add New Category</div>';
+  } else {
+    catContainer.innerHTML = '';
+  }
+
   updateProgress();
 }
 
