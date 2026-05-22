@@ -3,23 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📦 库存清单 Inventory Checklist</title>
+<title>📦 库存清单 Inventory Checklist (Cloud Sync)</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f8fafc;min-height:100vh;padding:14px 12px 50px}
 .wrap{max-width:640px;margin:0 auto}
-.header{background:linear-gradient(135deg,#1e3a5f,#2563eb);border-radius:16px;padding:20px 22px 16px;margin-bottom:14px;color:#fff;box-shadow:0 4px 20px rgba(37,99,235,.25)}
+.header{background:linear-gradient(135deg,#1e3a5f,#2563eb);border-radius:16px;padding:20px 22px 16px;margin-bottom:14px;color:#fff;box-shadow:0 4px 20px rgba(37,99,235,.25); position: relative;}
 .header-sub{font-size:11px;letter-spacing:2px;opacity:.7;margin-bottom:3px;text-transform:uppercase}
 .header h1{font-size:21px;font-weight:700;margin-bottom:12px}
 .prog-row{display:flex;justify-content:space-between;font-size:12px;opacity:.85;margin-bottom:5px}
 .prog-bar{background:rgba(255,255,255,.2);border-radius:99px;height:8px;overflow:hidden}
 .prog-fill{height:100%;background:#4ade80;border-radius:99px;transition:width .3s}
+.sync-status {position: absolute; top: 20px; right: 22px; font-size: 11px; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 6px;}
+
 .toolbar{display:flex;gap:8px;margin-bottom:12px}
 .search{flex:1;padding:9px 13px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .btn{padding:9px 14px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
-.btn-export{background:#2563eb;color:#fff}
-.btn-reset{background:#fff;color:#64748b;border:1.5px solid #e2e8f0}
+.btn-reset{background:#fff;color:#64748b;border:1.5px solid #e2e8f0; width: 100%; margin-top: 10px;}
 .tip{text-align:center;font-size:11px;color:#94a3b8;margin-bottom:12px}
+
 .cat-block{background:#fff;border-radius:14px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07)}
 .cat-head{padding:10px 15px;display:flex;align-items:center;justify-content:space-between;border-bottom:1.5px solid}
 .cat-name{font-weight:700;font-size:14px}
@@ -42,31 +44,25 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f8fafc;min-height:100vh
 .qty-inp{font-size:13px;font-weight:700;padding:3px 7px;border-radius:7px;border:2px solid #2563eb;outline:none;width:85px;text-align:center;display:none}
 .qty-unit{font-size:10px;color:#94a3b8;margin-top:1px}
 .hidden{display:none!important}
-.export-note{background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:12px;line-height:1.6}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="header">
     <div class="header-sub">Store Inventory</div>
+    <div class="sync-status" id="sync-status">🔄 加载中...</div>
     <h1>📦 库存清单 · Inventory Checklist</h1>
     <div class="prog-row"><span>已检查 / Checked</span><span id="ptxt">0 / 0 (0%)</span></div>
     <div class="prog-bar"><div class="prog-fill" id="pfill" style="width:0%"></div></div>
   </div>
 
-  <div class="export-note">
-    📤 改完数量后点 <strong>Export</strong> → 发给我最新的 HTML 文件即可<br>
-    📥 我收到后直接打开就是最新数据
-  </div>
-
   <div class="toolbar">
     <input class="search" type="text" placeholder="🔍 搜索 / Search..." oninput="doSearch(this.value)">
-    <button class="btn btn-export" onclick="exportHTML()">📤 Export</button>
-    <button class="btn btn-reset" onclick="doReset()">🔄 重置</button>
   </div>
-  <div class="tip">✅ 点方块打勾 &nbsp;|&nbsp; ✏️ 点数量修改</div>
+  <div class="tip">✅ 点方块打勾  |  ✏️ 点数量修改 (自动存入云端)</div>
 
   <div id="inv"></div>
+  <button class="btn btn-reset" onclick="doReset()">🔄 重置系统 (恢复默认状态)</button>
 </div>
 <script>
 const CATS = [
@@ -77,20 +73,21 @@ const CATS = [
   {id:"materials",name:"📦 材料耗材 Materials",color:"#dc2626", bg:"#fef2f2", border:"#fecaca"},
 ];
 
-let ITEMS = [
-  {id:"mr_muscle",   cat:"cleaning", icon:"🧴", name:"Mr. Muscle 威猛先生",           sub:"多功能清洁剂",     unit:"个",  qty:8,  low:3},
-  {id:"clorox",      cat:"cleaning", icon:"🫧", name:"Clorox 高乐氏漂白水",           sub:"消毒漂白剂",       unit:"个",  qty:18, low:5},
+// 作为系统被清空或初次运行的备用默认数据
+const DEFAULT_ITEMS = [
+  {id:"mr_muscle",   cat:"cleaning", icon:"🧴", name:"Mr. Muscle 威猛先生",            sub:"多功能清洁剂",      unit:"个",  qty:8,  low:3},
+  {id:"clorox",      cat:"cleaning", icon:"🫧", name:"Clorox 高乐氏漂白水",            sub:"消毒漂白剂",        unit:"个",  qty:18, low:5},
   {id:"degreaser",   cat:"cleaning", icon:"🧹", name:"碱性除油剂 Alkaline Degreaser P-529", sub:"工业脱脂剂", unit:"个",  qty:3,  low:2},
-  {id:"washing_pwd", cat:"cleaning", icon:"🧺", name:"洗衣粉 Washing Powder",         sub:"1包=5kg",          unit:"包",  qty:12, low:3},
+  {id:"washing_pwd", cat:"cleaning", icon:"🧺", name:"洗衣粉 Washing Powder",          sub:"1包=5kg",          unit:"包",  qty:12, low:3},
   {id:"freshener",   cat:"cleaning", icon:"🌸", name:"空气清新剂 Room Freshener P-585",sub:"",                unit:"个",  qty:2,  low:2},
   {id:"spray_black", cat:"paint",    icon:"🖤", name:"喷漆 黑色 Spray Paint Black",   sub:"",                unit:"个",  qty:10, low:3},
   {id:"spray_white", cat:"paint",    icon:"🤍", name:"喷漆 白色 Spray Paint White",   sub:"",                unit:"个",  qty:20, low:5},
   {id:"spray_blue",  cat:"paint",    icon:"💙", name:"喷漆 蓝色 Spray Paint Blue",    sub:"",                unit:"个",  qty:8,  low:3},
   {id:"spray_red",   cat:"paint",    icon:"❤️", name:"喷漆 红色 Spray Paint Red",     sub:"",                unit:"个",  qty:5,  low:3},
-  {id:"pp_white",    cat:"paint",    icon:"🪣", name:"专业漆 白色 Pro-Paint White",   sub:"1桶=5L",           unit:"桶",  qty:4,  low:2},
-  {id:"pp_red",      cat:"paint",    icon:"🪣", name:"专业漆 红色 Pro-Paint Red",     sub:"1桶=5L",           unit:"桶",  qty:4,  low:2},
-  {id:"pp_blue",     cat:"paint",    icon:"🪣", name:"专业漆 蓝色 Pro-Paint Blue",    sub:"1桶=5L",           unit:"桶",  qty:1,  low:2},
-  {id:"fire_base",   cat:"safety",   icon:"🧯", name:"灭火器底座 Fire Extinguisher Base", sub:"",             unit:"个",  qty:20, low:5},
+  {id:"pp_white",    cat:"paint",    icon:"🪣", name:"专业漆 白色 Pro-Paint White",   sub:"1桶=5L",            unit:"桶",  qty:4,  low:2},
+  {id:"pp_red",      cat:"paint",    icon:"🪣", name:"专业漆 红色 Pro-Paint Red",     sub:"1桶=5L",            unit:"桶",  qty:4,  low:2},
+  {id:"pp_blue",     cat:"paint",    icon:"🪣", name:"专业漆 蓝色 Pro-Paint Blue",    sub:"1桶=5L",            unit:"桶",  qty:1,  low:2},
+  {id:"fire_base",   cat:"safety",   icon:"🧯", name:"灭火器底座 Fire Extinguisher Base", sub:"",              unit:"个",  qty:20, low:5},
   {id:"helmet_y",    cat:"safety",   icon:"⛑️", name:"安全帽 黄色 Helmet Yellow",     sub:"",                unit:"包",  qty:6,  low:2},
   {id:"helmet_w",    cat:"safety",   icon:"⛑️", name:"安全帽 白色 Helmet White",      sub:"",                unit:"包",  qty:6,  low:2},
   {id:"helmet_r",    cat:"safety",   icon:"⛑️", name:"安全帽 红色 Helmet Red",        sub:"",                unit:"袋",  qty:7,  low:2},
@@ -112,7 +109,7 @@ let ITEMS = [
   {id:"vest_purple", cat:"safety",   icon:"🦺", name:"背心 紫色 Vest Purple",         sub:"",                unit:"包",  qty:0,  low:2},
   {id:"glove_wb",    cat:"safety",   icon:"🧤", name:"手套 白蓝 Gloves White/Blue",   sub:"",                unit:"包",  qty:44, low:5},
   {id:"glove_grey",  cat:"safety",   icon:"🧤", name:"手套 灰色 Gloves Grey",         sub:"",                unit:"双",  qty:156,low:10},
-  {id:"loto_lock",   cat:"tools",    icon:"🔒", name:"LOTO 锁头 LOTO Lock",           sub:"停工安全锁",       unit:"个",  qty:46, low:10},
+  {id:"loto_lock",   cat:"tools",    icon:"🔒", name:"LOTO 锁头 LOTO Lock",           sub:"停工安全锁",        unit:"个",  qty:46, low:10},
   {id:"disc_107",    cat:"tools",    icon:"⚙️", name:"切割片 107×1.2×16mm",           sub:"Cutting Disc",    unit:"片",  qty:70, low:10},
   {id:"disc_100",    cat:"tools",    icon:"⚙️", name:"切割片 100×6×16mm",             sub:"Cutting Disc",    unit:"片",  qty:79, low:10},
   {id:"tape_measure",cat:"tools",    icon:"📏", name:"卷尺 Measuring Tape KAKO/PMS",  sub:"",                unit:"对",  qty:8,  low:2},
@@ -120,7 +117,7 @@ let ITEMS = [
   {id:"lock_biasa",  cat:"tools",    icon:"🔑", name:"普通锁 Lock Biasa",             sub:"",                unit:"个",  qty:8,  low:2},
   {id:"hose_blue",   cat:"materials",icon:"💧", name:"蓝水管 Sunny Hose Blue 2\"×100M",sub:"",               unit:"条",  qty:1,  low:1},
   {id:"delineator",  cat:"materials",icon:"🚧", name:"反光路障 Delineator Reflective",sub:"",                unit:"包",  qty:20, low:5},
-  {id:"tape_by",     cat:"materials",icon:"📦", name:"警示胶带 黑黄 Tape Black/Yellow",sub:"",               unit:"个",  qty:11, low:3},
+  {id:"tape_by",     cat:"materials",icon:"📦", name:"警示胶带 黑黄 Tape Black/Yellow",sub:"",                unit:"个",  qty:11, low:3},
   {id:"tape_grey",   cat:"materials",icon:"📦", name:"警示胶带 灰色 Tape Grey",       sub:"",                unit:"个",  qty:44, low:5},
   {id:"bag_big",     cat:"materials",icon:"🛍️", name:"垃圾袋 大黑 Plastic Bag Big",   sub:"",                unit:"包",  qty:39, low:5},
   {id:"bag_small",   cat:"materials",icon:"🛍️", name:"垃圾袋 小蓝 Plastic Bag Small", sub:"",               unit:"包",  qty:7,  low:2},
@@ -129,12 +126,57 @@ let ITEMS = [
 ];
 
 // ── State ──────────────────────────────────────────────
+let ITEMS = [];
 let checked = {};
-let quantities = {}; // id → current qty (number or string)
-
-ITEMS.forEach(it => { quantities[it.id] = it.qty; });
+let quantities = {}; 
 
 function getQty(id){ return quantities[id] !== undefined ? quantities[id] : ITEMS.find(i=>i.id===id).qty; }
+
+// ── Cloud Sync Logic ───────────────────────────────────
+const statusEl = document.getElementById('sync-status');
+
+async function initData() {
+  try {
+    const res = await fetch('/api/sync');
+    const data = await res.json();
+    
+    // 如果云端有数据，则使用云端数据；否则使用默认数据
+    if (data && data.items) {
+      ITEMS = data.items;
+      checked = data.checked || {};
+    } else {
+      ITEMS = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+      checked = {};
+      saveDataToCloud(); // 将默认数据推上云端
+    }
+    statusEl.textContent = '🟢 已同步';
+  } catch (error) {
+    console.error('云端拉取失败', error);
+    statusEl.textContent = '🔴 离线模式';
+    ITEMS = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+  }
+  
+  ITEMS.forEach(it => { quantities[it.id] = it.qty; });
+  render();
+}
+
+async function saveDataToCloud() {
+  statusEl.textContent = '⏳ 保存中...';
+  
+  // 更新主数组中的库存数量
+  ITEMS.forEach(it => { it.qty = quantities[it.id]; });
+
+  try {
+    await fetch('/api/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: ITEMS, checked: checked })
+    });
+    statusEl.textContent = '🟢 已同步';
+  } catch (error) {
+    statusEl.textContent = '🔴 同步失败';
+  }
+}
 
 // ── Progress ───────────────────────────────────────────
 function updateProgress(){
@@ -150,6 +192,7 @@ function toggleCheck(id){
   const el = document.querySelector('[data-id="'+id+'"]');
   if(el) el.classList.toggle('done', !!checked[id]);
   updateProgress();
+  saveDataToCloud(); // 勾选后自动保存到云端
 }
 
 // ── Qty edit ───────────────────────────────────────────
@@ -168,13 +211,14 @@ function finishEdit(id){
     const n = isNaN(v) ? v : Number(v);
     quantities[id] = n;
     disp.textContent = n;
-    // update low-stock indicator
+    
     const row = document.querySelector('[data-id="'+id+'"]');
     const item = ITEMS.find(i=>i.id===id);
     if(row && item) row.classList.toggle('low-stock', !isNaN(n) && Number(n) <= item.low && Number(n) > 0);
   }
   inp.style.display='none';
   disp.style.display='inline-block';
+  saveDataToCloud(); // 修改数量后自动保存到云端
 }
 
 // ── Search ─────────────────────────────────────────────
@@ -196,35 +240,12 @@ function doSearch(q){
 
 // ── Reset ──────────────────────────────────────────────
 function doReset(){
-  if(!confirm('重置所有勾选？\nReset all checks?')) return;
-  checked={};
-  document.querySelectorAll('.row.done').forEach(el=>el.classList.remove('done'));
-  updateProgress();
-}
-
-// ── Export ─────────────────────────────────────────────
-function exportHTML(){
-  // Snapshot current quantities into ITEMS
-  const snap = ITEMS.map(it=>Object.assign({},it,{qty: quantities[it.id]}));
-  const snapJSON = JSON.stringify(snap);
-
-  // Get current page HTML, inject updated ITEMS
-  let src = document.documentElement.outerHTML;
-
-  // Replace the ITEMS array definition with snapshotted values
-  src = src.replace(/let ITEMS = \[[\s\S]*?\];/, 'let ITEMS = '+snapJSON+';');
-
-  // Reset checked state in export
-  src = src.replace(/let checked = \{[^}]*\};/, 'let checked = {};');
-
-  const blob = new Blob([src], {type:'text/html;charset=utf-8'});
-  const a = document.createElement('a');
-  const now = new Date();
-  const ts = now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0')+'-'+now.getDate().toString().padStart(2,'0');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'inventory-'+ts+'.html';
-  a.click();
-  URL.revokeObjectURL(a.href);
+  if(!confirm('🚨 确定要重置系统吗？\n这将清空云端数据，恢复到初始库存，并取消所有打勾。')) return;
+  ITEMS = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+  checked = {};
+  ITEMS.forEach(it => { quantities[it.id] = it.qty; });
+  render();
+  saveDataToCloud();
 }
 
 // ── Render ─────────────────────────────────────────────
@@ -240,7 +261,8 @@ function render(){
         const q = getQty(item.id);
         const qc = (q===0||q==='0') ? '#ef4444' : cat.color;
         const isLow = !isNaN(q) && Number(q)<=item.low && Number(q)>0;
-        return '<div class="row'+(isLow?' low-stock':'')+'" data-id="'+item.id+'">'
+        const isChecked = !!checked[item.id];
+        return '<div class="row'+(isLow?' low-stock':'')+(isChecked?' done':'')+'" data-id="'+item.id+'">'
           +'<div class="chk" onclick="toggleCheck(\''+item.id+'\')">'
           +'<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'
           +'<span class="ricon">'+item.icon+'</span>'
@@ -253,7 +275,9 @@ function render(){
   }).join('');
   updateProgress();
 }
-render();
+
+// 启动应用
+initData();
 </script>
 </body>
 </html>
