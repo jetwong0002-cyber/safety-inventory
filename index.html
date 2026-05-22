@@ -231,16 +231,36 @@ let editingQtyId=null;
 const syncStatusEl = document.getElementById('sync-status');
 
 // API 同步逻辑完美回归
+// API 同步逻辑完美回归
 async function load(){
   try{
     const res = await fetch('/api/sync');
     const cloudData = await res.json();
     
     if(cloudData && cloudData.items && cloudData.items.length > 0) {
-      state.items = cloudData.items;
+      // 🌟 核心修复：智能合并数据 
+      // 保留云端你真实记录的库存数量 (qty)
+      // 但强制用最新的 DEFAULT_ITEMS 覆盖名字 (name)、备注 (sub) 和单位 (unit)
+      state.items = cloudData.items.map(cloudItem => {
+        const defItem = DEFAULT_ITEMS.find(d => d.id === cloudItem.id);
+        if(defItem) {
+          return {
+            ...cloudItem,
+            name: defItem.name, // 强制更新为双语名字
+            sub: defItem.sub,   // 强制更新为双语备注
+            unit: defItem.unit  // 强制修正底层单位代码，确保能匹配到双语
+          };
+        }
+        return cloudItem; // 如果是你后来手动新增的物品，保持原样
+      });
+      
       state.cats = cloudData.cats || state.cats;
       state.history = cloudData.history || [];
       state.collapsed = cloudData.collapsed || {};
+
+      // 把修复好的双语数据静默覆盖保存回你的云端服务器
+      await saveSilent();
+
     } else {
       // 如果云端是空的，把我们现在的默认资料存上去
       await saveSilent();
