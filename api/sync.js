@@ -1,24 +1,29 @@
-import { sql } from '@vercel/postgres';
+const { createPool } = require('@vercel/postgres');
 
-export default async function handler(req, res) {
-  // 1. 强制检查：看看 Vercel 到底有没有把 Neon 的密码给这个文件
+module.exports = async function handler(req, res) {
+  // 1. 安全检查：如果 Vercel 没把密码传过来，温和地报错，而不是崩溃
   if (!process.env.POSTGRES_URL) {
-    return res.status(500).json({ error: "致命错误：找不到 POSTGRES_URL，Vercel 没有把数据库密码传过来！" });
+    return res.status(500).json({ error: "致命错误：在 Vercel 环境变量中找不到 POSTGRES_URL，请检查数据库是否已成功 Connect 并重新部署 (Redeploy)。" });
   }
 
   try {
-    // 2. 尝试建表
-    await sql`CREATE TABLE IF NOT EXISTS inventory_data (id INT PRIMARY KEY, content JSONB)`;
+    // 2. 只有在确认有密码后，才开始连接数据库
+    const pool = createPool({
+      connectionString: process.env.POSTGRES_URL
+    });
 
-    // 3. GET 读取数据
+    // 3. 自动建表
+    await pool.sql`CREATE TABLE IF NOT EXISTS inventory_data (id INT PRIMARY KEY, content JSONB)`;
+
+    // 4. GET 读取数据
     if (req.method === 'GET') {
-      const { rows } = await sql`SELECT content FROM inventory_data WHERE id = 1`;
+      const { rows } = await pool.sql`SELECT content FROM inventory_data WHERE id = 1`;
       return res.status(200).json(rows.length > 0 ? rows[0].content : null);
     }
 
-    // 4. POST 写入数据
+    // 5. POST 写入数据
     if (req.method === 'POST') {
-      await sql`
+      await pool.sql`
         INSERT INTO inventory_data (id, content)
         VALUES (1, ${JSON.stringify(req.body)})
         ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content
@@ -27,7 +32,6 @@ export default async function handler(req, res) {
     }
 
   } catch (error) {
-    // 如果是 SQL 报错，把完整的英文错误信息抓出来
     return res.status(500).json({ error: "Neon 数据库运行报错: " + error.message });
   }
 }
