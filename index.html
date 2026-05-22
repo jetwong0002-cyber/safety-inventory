@@ -3,647 +3,529 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>📦 库存清单 Inventory Checklist (Cloud Sync v3)</title>
+<title>仓库清单 Inventory</title>
 <style>
-/* ── 核心样式 ── */
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f1f5f9;color:#1e293b;padding:12px 12px 50px}
-.wrap{max-width:600px;margin:0 auto}
-
-/* ── 头部仪表盘 ── */
-.header{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-radius:16px;padding:20px;color:#fff;margin-bottom:12px;box-shadow:0 4px 12px rgba(15,23,42,0.15);position:relative}
-.header-sub{font-size:11px;letter-spacing:1.5px;opacity:.7;margin-bottom:4px;text-transform:uppercase}
-.header h1{font-size:20px;font-weight:700;margin-bottom:12px;line-height:1.3}
-.prog-row{display:flex;justify-content:space-between;font-size:12px;opacity:.85;margin-bottom:6px}
-.prog-bar{background:rgba(255,255,255,.08);border-radius:99px;height:8px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
-.prog-fill{height:100%;background:#4ade80;border-radius:99px;transition:width .3s}
-.sync-status{position:absolute;top:20px;right:20px;font-size:10px;background:rgba(255,255,255,0.06);padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.08)}
-
-/* ── 工具栏与搜索 ── */
-.control-panel{background:#fff;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
-.toolbar{display:flex;gap:8px}
-.search-input{flex:1;padding:10px 14px 10px 36px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none;transition:all 0.2s;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 12px center}
-.search-input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
-.btn-toggle-admin{background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
-.btn-toggle-admin.active{background:#ffeeef;color:#ef4444;border-color:#fecaca;box-shadow:0 2px 4px rgba(239,68,68,0.1)}
-.tip-box{text-align:center;font-size:11px;color:#94a3b8;margin-top:10px;line-height:1.5}
-.admin-on .tip-normal,.tip-admin{display:none}
-.admin-on .tip-admin{display:block}
-
-/* ── 物资分类与行 ── */
-.category-section{background:#fff;border-radius:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden}
-.category-header{padding:12px 14px;font-weight:700;font-size:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f1f5f9;position:relative}
-.cat-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;background:rgba(255,255,255,0.6)}
-.btn-add-item-row{display:none;width:100%;padding:10px;text-align:center;color:#3b82f6;font-size:13px;font-weight:600;cursor:pointer;border-top:1px dashed #e2e8f0;background:#f8fafc}
-.admin-on .btn-add-item-row{display:block}
-.admin-on .category-header{cursor:pointer}
-.admin-on .cat-edit-hint{display:inline}
-.cat-edit-hint{display:none;font-size:10px;font-weight:400;opacity:.6;margin-left:6px}
-
-.item-row{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #f8fafc;position:relative}
-.item-row:last-child{border-bottom:none}
-.item-row.checked-view{background:#f0fdf4}
-.item-row.checked-view .rname{text-decoration:line-through;color:#86efac}
-.item-row.low-stock .rname::after{content:" ⚠️ 低 / Low";font-size:10px;color:#d97706;margin-left:6px;background:#fffbeb;padding:1px 5px;border-radius:4px}
-.row-chk{width:22px;height:22px;border-radius:6px;border:2px solid #cbd5e1;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;cursor:pointer}
-.row-chk svg{display:none}
-.item-row.checked-view .row-chk{background:#16a34a;border-color:#16a34a}
-.item-row.checked-view .row-chk svg{display:block}
-.rico{font-size:18px;margin-right:10px;width:24px;text-align:center;flex-shrink:0}
-.admin-on .rico{cursor:pointer;background:#eff6ff;border-radius:6px;border:1.5px dashed #93c5fd;padding:1px}
-.rtext-wrap{flex:1;min-width:0;padding-right:8px}
-.rname{font-size:14px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
-.rsub{font-size:11px;color:#94a3b8;margin-top:1px;line-height:1.2}
-.admin-on .rname{color:#3b82f6;cursor:pointer;text-decoration:underline dotted}
-.admin-on .rsub{color:#2563eb;cursor:pointer;font-weight:600}
-
-/* ── 计数器控制器 ── */
-.counter-box{display:flex;align-items:center;background:#f1f5f9;padding:3px;border-radius:8px}
-.btn-ctr{width:28px;height:28px;border:none;background:#fff;border-radius:6px;font-size:16px;font-weight:700;color:#475569;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
-.btn-ctr:active{background:#e2e8f0}
-.qty-disp{min-width:38px;text-align:center;font-size:14px;font-weight:700;color:#0f172a;cursor:pointer}
-.qty-inp{display:none;width:44px;text-align:center;font-size:14px;font-weight:700;border:1.5px solid #3b82f6;border-radius:5px;outline:none;padding:1px 4px;color:#0f172a}
-.unit-lbl{font-size:10px;color:#64748b;margin-top:2px;cursor:pointer;line-height:1.2;text-align:center}
-.qty-grp{display:flex;flex-direction:column;align-items:center;margin:0 4px}
-.admin-on .unit-lbl{color:#7c3aed;font-weight:700;text-decoration:underline dotted}
-
-/* ── 删除按钮 ── */
-.btn-del-item{display:none;background:none;border:none;font-size:15px;cursor:pointer;padding:2px 4px;color:#fca5a5;flex-shrink:0;border-radius:6px;margin-left:4px}
-.admin-on .btn-del-item{display:flex;align-items:center}
-.btn-del-item:hover{color:#ef4444;background:#fef2f2}
-.btn-edit-cat{display:none;background:none;border:none;font-size:12px;color:currentColor;opacity:.5;cursor:pointer;padding:2px 6px;border-radius:4px;margin-left:4px}
-.admin-on .btn-edit-cat{display:inline-flex;align-items:center}
-
-/* ── 弹窗/全局按钮 ── */
-.global-action-btn{width:100%;padding:14px;background:#fff;border:2px dashed #cbd5e1;color:#64748b;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:12px}
-.btn-reset-system{width:100%;padding:12px;background:none;border:none;color:#94a3b8;font-size:11px;text-decoration:underline;margin-top:10px;cursor:pointer}
-.hidden{display:none!important}
-
-/* ── 图标选择器弹窗 ── */
-.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:100;display:none;align-items:center;justify-content:center}
-.modal-box{background:#fff;width:90%;max-width:400px;border-radius:16px;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,0.2)}
-.modal-title{font-size:16px;font-weight:700;margin-bottom:15px;text-align:center}
-.emoji-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;max-height:250px;overflow-y:auto;padding:5px}
-.emoji-btn{font-size:24px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px;cursor:pointer;text-align:center}
-.emoji-btn:active{background:#e2e8f0}
-
-/* ── 底部输入弹窗 ── */
-.pm-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
-.pm-overlay.open{display:flex}
-.pm-box{background:#fff;width:100%;max-width:600px;border-radius:20px 20px 0 0;padding:22px 18px 30px;box-shadow:0 -4px 20px rgba(0,0,0,0.12);animation:pmUp .22s ease}
-@keyframes pmUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
-.pm-title{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:4px}
-.pm-hint{font-size:11px;color:#94a3b8;margin-bottom:12px;line-height:1.5;white-space:pre-line}
-.pm-input{width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;outline:none;color:#0f172a;margin-bottom:12px}
-.pm-input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
-.pm-btns{display:flex;gap:10px}
-.pm-cancel{flex:1;padding:13px;background:#f1f5f9;border:none;border-radius:10px;font-size:14px;font-weight:600;color:#64748b;cursor:pointer}
-.pm-ok{flex:2;padding:13px;background:#3b82f6;border:none;border-radius:10px;font-size:14px;font-weight:600;color:#fff;cursor:pointer}
-.pm-ok:active{background:#2563eb}
-
-/* ── 添加物品表单弹窗 ── */
-.additem-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
-.additem-overlay.open{display:flex}
-.additem-box{background:#fff;width:100%;max-width:600px;border-radius:20px 20px 0 0;padding:22px 18px 32px;box-shadow:0 -4px 20px rgba(0,0,0,0.12);animation:pmUp .22s ease;max-height:90vh;overflow-y:auto}
-.additem-title{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:16px;text-align:center}
-.additem-icon-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.additem-icon-btn{font-size:30px;background:#f1f5f9;border:1.5px dashed #cbd5e1;border-radius:10px;padding:8px 14px;cursor:pointer;min-width:58px;text-align:center}
-.additem-icon-hint{font-size:11px;color:#94a3b8;line-height:1.5}
-.additem-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
-.additem-input{width:100%;padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:14px;outline:none;color:#0f172a;margin-bottom:12px}
-.additem-input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
-.additem-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.additem-btns{display:flex;gap:10px;margin-top:4px}
-.additem-cancel{flex:1;padding:13px;background:#f1f5f9;border:none;border-radius:10px;font-size:14px;font-weight:600;color:#64748b;cursor:pointer}
-.additem-ok{flex:2;padding:13px;background:#3b82f6;border:none;border-radius:10px;font-size:14px;font-weight:600;color:#fff;cursor:pointer}
-.additem-ok:active{background:#2563eb}
-
-/* ★ 单位快捷选项样式 */
-.uq-container{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;margin-top:-6px}
-.uq-btn{padding:5px 10px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;color:#475569;cursor:pointer;white-space:nowrap;user-select:none;transition:all 0.1s}
-.uq-btn:active{background:#e2e8f0;border-color:#94a3b8;transform:scale(0.96)}
+:root{
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#f1f5f9;
+  --color-background-danger:#fef2f2;
+  --color-background-info:#eff6ff;
+  --color-border-tertiary:#e2e8f0;
+  --color-border-secondary:#cbd5e1;
+  --color-border-danger:#fca5a5;
+  --color-border-info:#bfdbfe;
+  --color-border-success:#86efac;
+  --color-text-primary:#0f172a;
+  --color-text-secondary:#475569;
+  --color-text-tertiary:#94a3b8;
+  --color-text-danger:#ef4444;
+  --color-text-info:#3b82f6;
+  --color-text-success:#10b981;
+  --border-radius-md:8px;
+  --border-radius-lg:12px;
+}
+body{font-family:var(--font-sans);background:#f8fafc}
+.app{max-width:420px;margin:0 auto;padding:0 0 80px;}
+.header{padding:14px 16px 8px;border-bottom:0.5px solid var(--color-border-tertiary);position:sticky;top:0;background:var(--color-background-primary);z-index:20}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.title{font-size:17px;font-weight:700;color:var(--color-text-primary)}
+.saved-tag{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+.hbtns{display:flex;gap:6px}
+.hbtn{background:none;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 10px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px}
+.hbtn:active{opacity:.7}
+.search-row{display:flex;gap:8px}
+.sw{flex:1;position:relative}
+.sw i{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--color-text-tertiary);pointer-events:none}
+.sw input{width:100%;padding:8px 10px 8px 30px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:14px;background:var(--color-background-secondary);color:var(--color-text-primary)}
+.sw input:focus{outline:none;border-color:var(--color-border-info)}
+.fbtn{border:0.5px solid var(--color-border-tertiary);background:none;border-radius:var(--border-radius-md);padding:8px 10px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;white-space:nowrap}
+.fbtn.on{background:var(--color-background-danger);color:var(--color-text-danger);border-color:var(--color-border-danger)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px;text-align:center}
+.stat-v{font-size:18px;font-weight:700;color:var(--color-text-primary)}
+.stat-l{font-size:11px;color:var(--color-text-secondary);margin-top:1px}
+.cg{margin:0 16px 4px}
+.ch{display:flex;align-items:center;gap:6px;padding:14px 0 6px;font-size:14px;font-weight:600;color:var(--color-text-secondary);cursor:pointer;user-select:none}
+.ch .cc{margin-left:auto;font-size:11px;background:var(--color-background-secondary);border-radius:20px;padding:2px 8px;color:var(--color-text-tertiary)}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,0.02)}
+.card-icon{width:34px;height:34px;border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.card-info{flex:1;min-width:0}
+.card-name{font-size:14px;font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.unit-tag{font-size:11px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:2px 6px;color:var(--color-text-secondary);cursor:pointer;font-weight:500}
+.unit-tag:hover{border-color:var(--color-border-info);color:var(--color-text-info)}
+.card-ctrl{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.cb{width:28px;height:28px;border:1px solid var(--color-border-secondary);border-radius:50%;background:var(--color-background-primary);font-size:16px;font-weight:bold;color:var(--color-text-primary);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cb:active{background:var(--color-background-secondary)}
+.cb.add{border-color:var(--color-border-success);color:var(--color-text-success)}
+.cb.sub{border-color:var(--color-border-danger);color:var(--color-text-danger)}
+.qbadge{min-width:40px;text-align:center;font-size:15px;font-weight:700;color:var(--color-text-primary);cursor:pointer;padding:3px}
+.qbadge.zero{color:var(--color-text-danger)}
+.qinput{width:48px;text-align:center;font-size:14px;font-weight:600;border:1.5px solid var(--color-border-info);border-radius:var(--border-radius-md);padding:3px;background:var(--color-background-primary);color:var(--color-text-primary)}
+.qinput:focus{outline:none}
+.edit-btn{background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:16px;padding:2px;flex-shrink:0}
+.edit-btn:hover{color:var(--color-text-secondary)}
+.add-item-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;background:#f8fafc;border:1px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-info);font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-bottom:6px}
+.add-item-btn:active{background:#f1f5f9}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--color-background-primary);border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 -4px 20px rgba(0,0,0,0.1)}
+.sheet-title{font-size:16px;font-weight:700;color:var(--color-text-primary);margin-bottom:4px;text-align:center}
+.sheet-sub{font-size:12px;color:var(--color-text-tertiary);margin-bottom:16px;text-align:center}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;border:1.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:14px;background:var(--color-background-primary);color:var(--color-text-primary)}
+.field textarea{height:80px;resize:none;font-family:var(--font-sans)}
+.field input:focus,.field select:focus{outline:none;border-color:var(--color-text-info)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mbtns{display:flex;gap:8px;margin-top:16px}
+.mbtn{flex:1;padding:12px;border-radius:var(--border-radius-md);font-size:14px;cursor:pointer;border:none;font-weight:600}
+.mbtn.p{background:var(--color-text-info);color:#fff}
+.mbtn.s{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.mbtn.d{background:var(--color-background-danger);color:var(--color-text-danger)}
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--color-background-primary);border-top:0.5px solid var(--color-border-tertiary);display:flex;z-index:10;padding-bottom:env(safe-area-inset-bottom)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;font-size:10px;font-weight:600;color:var(--color-text-tertiary);cursor:pointer;border:none;background:none}
+.tab.on{color:var(--color-text-info)}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1e293b;border-radius:var(--border-radius-md);padding:10px 20px;font-size:13px;font-weight:500;color:#fff;z-index:300;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.toast.on{opacity:1}
+.empty{text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:14px}
+.low-badge{font-size:10px;font-weight:600;background:var(--color-background-danger);color:var(--color-text-danger);border-radius:4px;padding:2px 6px}
+.hist-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.sec-label{font-size:11px;font-weight:700;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.5px;padding:12px 0 4px}
+.icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px}
+.ig-btn{border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:22px;padding:8px;cursor:pointer;text-align:center}
+.ig-btn.sel{border-color:var(--color-text-info);background:var(--color-background-info)}
 </style>
 </head>
 <body>
 
-<div class="wrap" id="main-wrap">
-  <div class="header">
-    <div class="header-sub">Safety &amp; Store Inventory (Kempas)</div>
-    <div class="sync-status" id="sync-status">🔄 加载 Loading...</div>
-    <h1>📦 物资库存盘点<br>Stock Checklist</h1>
-    <div class="prog-row"><span>已检查 Checked</span><span id="prog-text">0 / 0 (0%)</span></div>
-    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
-  </div>
-
-  <div class="control-panel">
-    <div class="toolbar">
-      <input type="text" class="search-input" placeholder="输入物资或英文快捷搜索..." oninput="filterItems(this.value)">
-      <button class="btn-toggle-admin" onclick="toggleAdminMode()" id="btn-admin">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
-        管理员 Admin
-      </button>
+<div class="app">
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="title">📦 仓库清单 Inventory</div>
+      <div class="saved-tag" id="saved-tag">加载中…</div>
     </div>
-    <div class="tip-box">
-      <div class="tip-normal">
-        ✅ 勾选方块表示已盘点 (Tick box when counted)<br>
-        ✏️ 点击数字直接修改库存数量 (Click qty to edit)
-      </div>
-      <div class="tip-admin hidden" style="color:#ef4444">
-        ⚠️ 管理模式已开启 (Admin mode is ON)<br>
-        点📌图标换图标 | 点名称改名 | 点单位改单位 | 🗑️删除
-      </div>
+    <div class="hbtns">
+      <button class="hbtn" onclick="openImport()">📥 导入</button>
+      <button class="hbtn" onclick="openExport()">📤 分享</button>
     </div>
   </div>
-
-  <div id="checklist-container"></div>
-
-  <div id="admin-actions-container" class="hidden">
-    <button class="global-action-btn" onclick="addNewCategory()">📁 添加新分类 Add New Category</button>
-  </div>
-  <button class="btn-reset-system" onclick="resetSystemToFactoryDefault()">🚨 重置系统至默认数据 Restore to Factory</button>
-</div>
-
-<!-- 图标选择器弹窗 -->
-<div class="modal-overlay" id="emoji-modal">
-  <div class="modal-box">
-    <div class="modal-title">选择物资图标 / Choose Icon</div>
-    <div class="emoji-grid" id="emoji-grid"></div>
-    <button class="global-action-btn" style="margin-top:15px;margin-bottom:0" onclick="closeEmojiModal()">关闭 Close</button>
+  <div class="search-row">
+    <div class="sw"><input id="sq" type="text" placeholder="搜索物品 Search…" oninput="render()"></div>
+    <button class="fbtn" id="low-btn" onclick="toggleLow()">⚠️ 低库存</button>
   </div>
 </div>
-
-<!-- 底部输入弹窗 -->
-<div class="pm-overlay" id="pm-overlay">
-  <div class="pm-box">
-    <div class="pm-title" id="pm-title"></div>
-    <div class="pm-hint" id="pm-hint"></div>
-    <input class="pm-input" id="pm-input" type="text">
-    <div class="pm-btns">
-      <button class="pm-cancel" onclick="pmResolve(null)">取消 Cancel</button>
-      <button class="pm-ok" onclick="pmConfirm()">确认 OK</button>
-    </div>
-  </div>
+<div class="stats" id="stats"></div>
+<div id="list"></div>
 </div>
 
-<!-- ★ 添加物品表单弹窗 -->
-<div class="additem-overlay" id="additem-overlay">
-  <div class="additem-box">
-    <div class="additem-title">➕ 添加新物品 Add New Item</div>
-
-    <div class="additem-icon-row">
-      <div class="additem-icon-btn" id="additem-icon-preview" onclick="openEmojiForNewItem()">🔹</div>
-      <div class="additem-icon-hint">点击图标更换<br>Tap icon to change</div>
-    </div>
-
-    <div class="additem-label">物品名称 Item Name *</div>
-    <input class="additem-input" id="ai-name" placeholder="例: 威猛先生 Mr. Muscle（中英双语）">
-
-    <div class="additem-label">备注/规格 Subtitle (可选)</div>
-    <input class="additem-input" id="ai-sub" placeholder="例: 多功能清洁剂 Multi-purpose">
-
-    <!-- ★ 修改了单位的输入布局 -->
-    <div class="additem-label">单位 Unit * (双语)</div>
-    <input class="additem-input" id="ai-unit" placeholder="可手动输入或点击下方快捷选择" style="margin-bottom:8px">
-    
-    <!-- ★ 快捷选择标签 -->
-    <div class="uq-container">
-      <div class="uq-btn" onclick="document.getElementById('ai-unit').value='个/pcs'">个/pcs</div>
-      <div class="uq-btn" onclick="document.getElementById('ai-unit').value='包/pack'">包/pack</div>
-      <div class="uq-btn" onclick="document.getElementById('ai-unit').value='箱/box'">箱/box</div>
-      <div class="uq-btn" onclick="document.getElementById('ai-unit').value='条/strip'">条/strip</div>
-      <div class="uq-btn" onclick="document.getElementById('ai-unit').value='卷/roll'">卷/roll</div>
-      <div class="uq-btn" onclick="document.getElementById('ai-unit').value='套/set'">套/set</div>
-      <div class="uq-btn" onclick="document.getElementById('ai-unit').value='双/pair'">双/pair</div>
-      <div class="uq-btn" onclick="document.getElementById('ai-unit').value='罐/can'">罐/can</div>
-      <div class="uq-btn" onclick="document.getElementById('ai-unit').value='瓶/btl'">瓶/btl</div>
-      <div class="uq-btn" onclick="document.getElementById('ai-unit').value='片/pcs'">片/pcs</div>
-    </div>
-
-    <!-- 重新排版数量和警告值 -->
-    <div class="additem-row2">
-      <div>
-        <div class="additem-label">初始数量 Init Qty</div>
-        <input class="additem-input" id="ai-qty" type="number" min="0" value="0" style="margin-bottom:0">
-      </div>
-      <div>
-        <div class="additem-label">低库存警戒 Low Alert</div>
-        <input class="additem-input" id="ai-low" type="number" min="0" value="5" style="margin-bottom:0">
-      </div>
-    </div>
-
-    <div class="additem-btns">
-      <button class="additem-cancel" onclick="closeAddItem()">取消 Cancel</button>
-      <button class="additem-ok" onclick="confirmAddItem()">✅ 保存 Save</button>
-    </div>
-  </div>
+<div class="tab-bar">
+  <button class="tab on" id="t-inv" onclick="switchTab('inv')"><span style="font-size:20px">📦</span>库存</button>
+  <button class="tab" id="t-hist" onclick="switchTab('hist')"><span style="font-size:20px">📜</span>记录</button>
+  <button class="tab" id="t-add" onclick="openAddItem()"><span style="font-size:20px">➕</span>新增</button>
+  <button class="tab" id="t-share" onclick="openExport()"><span style="font-size:20px">📤</span>分享</button>
 </div>
+
+<div id="overlay" class="overlay" style="display:none" onclick="overlayClick(event)">
+  <div class="sheet" onclick="event.stopPropagation()" id="sheet"></div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
-// 图标库预设 (工地常见)
-const emojiPack = ['🧴','🫧','🧹','🧺','🌸','🧻','🪣','🧯','🚧','🚩','⛑️','🧥','🦺','🧤','🥾','🔒','🔧','🔨','📏','🔋','🔑','⚙️','💧','🛍️','📦','🔹','✅','⚠️','🪛','🪚','🖊️','📋','🖤','🤍','💙','❤️','🟡','🟠','🟢','🔴','🎨','🧲','💡','🔦','🪜','🛒','🗑️','📌','🏷️','🪤'];
+// 1. 固定不可手写的常见单位列表 (双语)
+const UNITS = [
+  { v: 'pcs', l: '个 / pcs' },
+  { v: 'pack', l: '包 / pack' },
+  { v: 'box', l: '箱 / box' },
+  { v: 'biji', l: '粒 / biji' },
+  { v: 'pairs', l: '双 / pairs' },
+  { v: 'set', l: '套 / set' },
+  { v: 'roll', l: '卷 / roll' },
+  { v: 'bag', l: '袋 / bag' },
+  { v: 'can', l: '罐 / can' },
+  { v: 'bottle', l: '瓶 / bottle' },
+  { v: 'strip', l: '条 / strip' },
+  { v: 'kg', l: '公斤 / kg' },
+  { v: 'liter', l: '升 / liter' },
+  { v: 'unit', l: '台 / unit' }
+];
 
-// 初始化变量
-let items = [];
-let cats = [];
-let checked = {};
-let currentSearchQuery = '';
-let isAdminMode = false;
-let currentEditingItemId = null;
-let addItemTargetCatId = null;
-let addItemNewIcon = '🔹';
+// 获取单位中文标签的辅助函数
+function getUnitLabel(v) {
+  const u = UNITS.find(x => x.v === v);
+  return u ? u.l : v;
+}
 
-const statusEl    = document.getElementById('sync-status');
-const addCatBtnEl = document.getElementById('admin-actions-container');
-const emojiModal  = document.getElementById('emoji-modal');
+// 2. 预设分类 (双语)
+const DEFAULT_CATS = [
+  {id:'cleaning',name:'清洁用品 Cleaning',color:'#dcf5ea'},
+  {id:'paint',name:'油漆喷漆 Paint',color:'#faecea'},
+  {id:'safety',name:'安全设备 Safety',color:'#e6f1fb'},
+  {id:'tools',name:'工具器材 Tools',color:'#faeeda'},
+  {id:'materials',name:'材料耗材 Materials',color:'#eaf3de'},
+];
 
-// ══════════════════════════════════════════════════════
-// 储存逻辑 — 原封不动 STORAGE UNCHANGED
-// ══════════════════════════════════════════════════════
-async function initData() {
-  try {
-    const res = await fetch('/api/sync');
-    const cloudData = await res.json();
-    if (cloudData && cloudData.items && cloudData.items.length > 0 && cloudData.cats && cloudData.cats.length > 0) {
-      items   = cloudData.items;
-      cats    = cloudData.cats;
-      checked = cloudData.checked || {};
-    } else {
-      useFactoryData();
-      await saveDataToCloudSilent();
+// 3. 预设物品：强制双语 + 匹配下拉菜单的单位 (v) + 保留你提供的原始库存数量
+const DEFAULT_ITEMS = [
+  {id:'mr_muscle',cat:'cleaning',name:'威猛先生 Mr. Muscle',sub:'多功能清洁剂',unit:'biji',qty:8,low:3,icon:'🧴'},
+  {id:'clorox',cat:'cleaning',name:'高乐氏漂白水 Clorox Bleach',sub:'消毒漂白剂',unit:'biji',qty:18,low:5,icon:'🫧'},
+  {id:'degreaser',cat:'cleaning',name:'工业脱脂剂 Alkaline Degreaser P-529',sub:'',unit:'biji',qty:3,low:2,icon:'🧹'},
+  {id:'washing_powder',cat:'cleaning',name:'洗衣粉 Washing Powder',sub:'1包=5kg',unit:'pack',qty:12,low:3,icon:'🧺'},
+  {id:'freshener',cat:'cleaning',name:'空气清新剂 Room Freshener P-585',sub:'',unit:'biji',qty:2,low:2,icon:'🌸'},
+  {id:'spray_black',cat:'paint',name:'喷漆(黑) Spray Paint Black',sub:'',unit:'can',qty:10,low:3,icon:'🖤'},
+  {id:'spray_white',cat:'paint',name:'喷漆(白) Spray Paint White',sub:'',unit:'can',qty:20,low:5,icon:'🤍'},
+  {id:'spray_blue',cat:'paint',name:'喷漆(蓝) Spray Paint Blue',sub:'',unit:'can',qty:8,low:3,icon:'💙'},
+  {id:'spray_red',cat:'paint',name:'喷漆(红) Spray Paint Red',sub:'',unit:'can',qty:5,low:3,icon:'❤️'},
+  {id:'propaint_white',cat:'paint',name:'白漆 Pro-Paint White',sub:'1桶=5L',unit:'can',qty:4,low:2,icon:'🪣'},
+  {id:'propaint_red',cat:'paint',name:'红漆 Pro-Paint Red',sub:'1桶=5L',unit:'can',qty:4,low:2,icon:'🪣'},
+  {id:'propaint_blue',cat:'paint',name:'蓝漆 Pro-Paint Blue',sub:'1桶=5L',unit:'can',qty:1,low:2,icon:'🪣'},
+  {id:'fire_ext',cat:'safety',name:'灭火器 Fire Extinguisher',sub:'基座',unit:'unit',qty:20,low:5,icon:'🧯'},
+  {id:'helmet_yellow',cat:'safety',name:'安全帽(黄) Helmet Yellow',sub:'',unit:'pcs',qty:25,low:2,icon:'⛑️'},
+  {id:'helmet_white',cat:'safety',name:'安全帽(白) Helmet White',sub:'',unit:'pcs',qty:32,low:2,icon:'⛑️'},
+  {id:'helmet_red',cat:'safety',name:'安全帽(红) Helmet Red',sub:'',unit:'pcs',qty:7,low:2,icon:'⛑️'},
+  {id:'rain_coat',cat:'safety',name:'雨衣 Rain Coat',sub:'',unit:'pcs',qty:80,low:10,icon:'🧥'},
+  {id:'boot_39',cat:'safety',name:'安全靴 Boot Size 39',sub:'',unit:'pairs',qty:10,low:3,icon:'🥾'},
+  {id:'boot_40',cat:'safety',name:'安全靴 Boot Size 40',sub:'',unit:'pairs',qty:13,low:3,icon:'🥾'},
+  {id:'boot_41',cat:'safety',name:'安全靴 Boot Size 41',sub:'',unit:'pairs',qty:0,low:3,icon:'🥾'},
+  {id:'boot_42',cat:'safety',name:'安全靴 Boot Size 42',sub:'',unit:'pairs',qty:2,low:3,icon:'🥾'},
+  {id:'boot_43',cat:'safety',name:'安全靴 Boot Size 43',sub:'',unit:'pairs',qty:8,low:3,icon:'🥾'},
+  {id:'boot_44',cat:'safety',name:'安全靴 Boot Size 44',sub:'',unit:'pairs',qty:5,low:3,icon:'🥾'},
+  {id:'boot_45',cat:'safety',name:'安全靴 Boot Size 45',sub:'',unit:'pairs',qty:20,low:3,icon:'🥾'},
+  {id:'boot_46',cat:'safety',name:'安全靴 Boot Size 46',sub:'',unit:'pairs',qty:12,low:3,icon:'🥾'},
+  {id:'vest_lg',cat:'safety',name:'反光背心(浅绿) Vest Light Green',sub:'',unit:'pcs',qty:4,low:2,icon:'🦺'},
+  {id:'vest_dg',cat:'safety',name:'反光背心(深绿) Vest Dark Green',sub:'',unit:'pcs',qty:11,low:2,icon:'🦺'},
+  {id:'vest_grey',cat:'safety',name:'反光背心(灰) Vest Grey',sub:'',unit:'pcs',qty:17,low:2,icon:'🦺'},
+  {id:'vest_red',cat:'safety',name:'反光背心(红) Vest Red',sub:'',unit:'pcs',qty:18,low:2,icon:'🦺'},
+  {id:'vest_yellow',cat:'safety',name:'反光背心(黄) Vest Yellow',sub:'',unit:'pcs',qty:0,low:2,icon:'🦺'},
+  {id:'vest_purple',cat:'safety',name:'反光背心(紫) Vest Purple',sub:'',unit:'pcs',qty:0,low:2,icon:'🦺'},
+  {id:'glove_wb',cat:'safety',name:'手套(白蓝) Gloves White/Blue',sub:'',unit:'pairs',qty:5,low:5,icon:'🧤'},
+  {id:'glove_grey',cat:'safety',name:'手套(灰) Gloves Grey',sub:'',unit:'pairs',qty:100,low:10,icon:'🧤'},
+  {id:'waterproof_jacket',cat:'safety',name:'防水外套 Waterproof Jacket',sub:'',unit:'set',qty:21,low:3,icon:'🧥'},
+  {id:'glasses',cat:'safety',name:'安全眼镜 Safety Glasses',sub:'',unit:'box',qty:13,low:3,icon:'🥽'},
+  {id:'whistle',cat:'safety',name:'哨子 Whistle',sub:'',unit:'pcs',qty:10,low:3,icon:'📯'},
+  {id:'loto_lock',cat:'tools',name:'停工上锁牌 LOTO Lock',sub:'',unit:'set',qty:46,low:10,icon:'🔒'},
+  {id:'disc_107',cat:'tools',name:'切割片 107×1.2×16mm Cutting Disc',sub:'',unit:'pcs',qty:70,low:10,icon:'⚙️'},
+  {id:'disc_100',cat:'tools',name:'切割片 100×6×16mm Cutting Disc',sub:'',unit:'pcs',qty:79,low:10,icon:'⚙️'},
+  {id:'measuring_tape',cat:'tools',name:'卷尺 Measuring Tape KAKO/PMS',sub:'',unit:'pcs',qty:8,low:2,icon:'📏'},
+  {id:'battery',cat:'tools',name:'电池 Greencell Battery',sub:'1包=2粒',unit:'pack',qty:15,low:3,icon:'🔋'},
+  {id:'lock_biasa',cat:'tools',name:'普通锁 Normal Lock',sub:'',unit:'pcs',qty:8,low:2,icon:'🔑'},
+  {id:'hose_blue',cat:'materials',name:'蓝水管 Sunny Hose Blue',sub:'2"×100M',unit:'roll',qty:1,low:1,icon:'🪣'},
+  {id:'delineator',cat:'materials',name:'反光桶 Delineator Reflective',sub:'',unit:'pcs',qty:20,low:5,icon:'🚧'},
+  {id:'tape_by',cat:'materials',name:'警示胶带(黑黄) Tape Black/Yellow',sub:'',unit:'roll',qty:11,low:3,icon:'📦'},
+  {id:'tape_grey',cat:'materials',name:'灰色胶带 Tape Grey',sub:'',unit:'roll',qty:44,low:5,icon:'📦'},
+  {id:'bag_big',cat:'materials',name:'大黑胶袋 Plastic Bag Big',sub:'',unit:'pack',qty:39,low:5,icon:'🛍️'},
+  {id:'bag_small',cat:'materials',name:'小蓝胶袋 Plastic Bag Small',sub:'',unit:'pack',qty:7,low:2,icon:'🛍️'},
+  {id:'flag_red',cat:'materials',name:'红旗 Flag Red',sub:'',unit:'pcs',qty:24,low:5,icon:'🚩'},
+  {id:'flag_green',cat:'materials',name:'绿旗 Flag Green',sub:'',unit:'pcs',qty:2,low:3,icon:'🚩'},
+];
+
+const ICONS=['🧴','🫧','🧹','🧺','🌸','🖤','🤍','💙','❤️','🪣','🧯','⛑️','🧥','🥾','🦺','🧤','🔒','⚙️','📏','🔋','🔑','🚧','📦','🛍️','🚩','⚠️','📯','🥽','🔧','🪛','📋','🏷️','💊','🧲','🪝','📐'];
+
+let state = {cats:[...DEFAULT_CATS],items:[...DEFAULT_ITEMS.map(i=>({...i}))],history:[],collapsed:{}};
+let activeTab='inv';
+let showLow=false;
+let editingQtyId=null;
+
+async function load(){
+  try{
+    const r=await window.storage.get('wh_v2');
+    if(r&&r.value){
+      const d=JSON.parse(r.value);
+      if(d.cats) state.cats=d.cats;
+      if(d.items) state.items=d.items;
+      if(d.history) state.history=d.history;
+      if(d.collapsed) state.collapsed=d.collapsed;
     }
-    statusEl.textContent = '🟢 已同步 Synced';
-  } catch (error) {
-    statusEl.textContent = '🔴 离线 Offline';
-    useFactoryData();
-  }
-  renderDashboard();
+  }catch(e){}
+  renderStats();render();
+  document.getElementById('saved-tag').textContent='就绪 Ready';
 }
 
-async function saveDataToCloudSilent() {
-  try {
-    const response = await fetch('/api/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, cats, checked })
+async function save(){
+  try{
+    await window.storage.set('wh_v2',JSON.stringify({cats:state.cats,items:state.items,history:state.history.slice(-300),collapsed:state.collapsed}));
+    const now=new Date();
+    document.getElementById('saved-tag').textContent='已保存 '+now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  }catch(e){}
+}
+
+function renderStats(){
+  const total=state.items.reduce((a,i)=>a+i.qty,0);
+  let low=0;state.items.forEach(i=>{if(i.qty<=i.low)low++;});
+  document.getElementById('stats').innerHTML=`
+    <div class="stat"><div class="stat-v">${state.items.length}</div><div class="stat-l">种类 Types</div></div>
+    <div class="stat"><div class="stat-v">${total}</div><div class="stat-l">总数 Total</div></div>
+    <div class="stat"><div class="stat-v" style="color:${low>0?'var(--color-text-danger)':'var(--color-text-success)'}">${low}</div><div class="stat-l">低库存 Low</div></div>`;
+}
+
+function render(){
+  if(activeTab==='hist'){renderHist();return;}
+  const q=document.getElementById('sq').value.toLowerCase();
+  let html='';
+  state.cats.forEach(cat=>{
+    const items=state.items.filter(it=>{
+      if(it.cat!==cat.id)return false;
+      if(q&&!it.name.toLowerCase().includes(q)&&!it.sub.toLowerCase().includes(q))return false;
+      if(showLow&&it.qty>it.low)return false;
+      return true;
     });
-    if (!response.ok) throw new Error('API Sync failed');
-    return true;
-  } catch (error) {
-    console.error('Data Sync failed silent', error);
-    return false;
-  }
-}
-
-async function saveDataToCloud() {
-  statusEl.textContent = '⏳ 保存中 Saving...';
-  const success = await saveDataToCloudSilent();
-  if (success) {
-    statusEl.textContent = '🟢 已同步 Synced';
-  } else {
-    statusEl.textContent = '🔴 同步失败 Failed';
-  }
-}
-// ══════════════════════════════════════════════════════
-// END STORAGE
-// ══════════════════════════════════════════════════════
-
-// ── 底部输入弹窗 (替代 prompt) ──
-let pmResolveFunc = null;
-function showPrompt(title, hint, defaultVal) {
-  return new Promise(resolve => {
-    pmResolveFunc = resolve;
-    document.getElementById('pm-title').textContent = title;
-    document.getElementById('pm-hint').textContent  = hint || '';
-    const inp = document.getElementById('pm-input');
-    inp.value = defaultVal || '';
-    document.getElementById('pm-overlay').classList.add('open');
-    setTimeout(() => { inp.focus(); inp.select(); }, 250);
+    if(!items.length&&q)return;
+    const col=state.collapsed[cat.id];
+    html+=`<div class="cg"><div class="ch" onclick="toggleCat('${cat.id}')">
+      ${cat.name}
+      <span class="cc">${items.length} 项</span>
+    </div>`;
+    if(!col){
+      items.forEach(it=>{
+        const isLow=it.qty<=it.low;
+        const isEdit=editingQtyId===it.id;
+        html+=`<div class="card">
+          <div class="card-icon" style="background:${cat.color}">${it.icon}</div>
+          <div class="card-info">
+            <div class="card-name">${it.name}</div>
+            <div class="card-sub">
+              <span class="unit-tag" onclick="openEditUnit('${it.id}')" title="点击修改单位">${getUnitLabel(it.unit)}</span>
+              ${it.sub?`<span style="color:var(--color-text-tertiary)">${it.sub}</span>`:''}
+              ${isLow?`<span class="low-badge">⚠️低库存</span>`:''}
+            </div>
+          </div>
+          <div class="card-ctrl">
+            <button class="cb sub" onclick="adj('${it.id}',-1)">−</button>
+            ${isEdit
+              ?`<input class="qinput" type="number" value="${it.qty}" min="0" id="qi_${it.id}" onblur="commitQty('${it.id}')" onkeydown="if(event.key==='Enter')commitQty('${it.id}')" autofocus>`
+              :`<span class="qbadge${it.qty===0?' zero':''}" onclick="startQty('${it.id}')">${it.qty}</span>`}
+            <button class="cb add" onclick="adj('${it.id}',1)">+</button>
+            <button class="edit-btn" onclick="openEditItem('${it.id}')" title="编辑物品">⋮</button>
+          </div>
+        </div>`;
+      });
+      html+=`<button class="add-item-btn" onclick="openAddItem('${cat.id}')">➕ 在此分类添加新物品 Add Item</button>`;
+    }
+    html+='</div>';
   });
-}
-function pmResolve(val) {
-  document.getElementById('pm-overlay').classList.remove('open');
-  if (pmResolveFunc) { pmResolveFunc(val); pmResolveFunc = null; }
-}
-function pmConfirm() {
-  const v = document.getElementById('pm-input').value.trim();
-  pmResolve(v || null);
-}
-document.getElementById('pm-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter')  pmConfirm();
-  if (e.key === 'Escape') pmResolve(null);
-});
-
-// ── 图标选择 ──
-function initEmojiGrid() {
-  document.getElementById('emoji-grid').innerHTML =
-    emojiPack.map(e => `<div class="emoji-btn" onclick="selectEmojiForCurrentItem('${e}')">${e}</div>`).join('');
-}
-function selectEmojiForCurrentItem(emoji) {
-  if (currentEditingItemId === '__new__') {
-    addItemNewIcon = emoji;
-    document.getElementById('additem-icon-preview').textContent = emoji;
-    closeEmojiModal();
-    return;
-  }
-  const item = items.find(i => i.id === currentEditingItemId);
-  if (item) { item.icon = emoji; closeEmojiModal(); renderDashboard(); saveDataToCloud(); }
-}
-function showEmojiModal(itemId) {
-  currentEditingItemId = itemId;
-  emojiModal.style.display = 'flex';
-}
-function closeEmojiModal() { emojiModal.style.display = 'none'; }
-function openEmojiForNewItem() {
-  currentEditingItemId = '__new__';
-  emojiModal.style.display = 'flex';
+  if(!html) html='<div class="empty">没有找到物品 No items found</div>';
+  document.getElementById('list').innerHTML=html;
 }
 
-// ── 添加物品弹窗 ──
-function openAddItemModal(catId) {
-  addItemTargetCatId = catId;
-  addItemNewIcon = '🔹';
-  document.getElementById('additem-icon-preview').textContent = '🔹';
-  document.getElementById('ai-name').value = '';
-  document.getElementById('ai-sub').value  = '';
-  document.getElementById('ai-unit').value = '';
-  document.getElementById('ai-qty').value  = '0';
-  document.getElementById('ai-low').value  = '5';
-  document.getElementById('additem-overlay').classList.add('open');
-  setTimeout(() => document.getElementById('ai-name').focus(), 280);
-}
-function closeAddItem() { document.getElementById('additem-overlay').classList.remove('open'); }
-function confirmAddItem() {
-  const name = document.getElementById('ai-name').value.trim();
-  const unit = document.getElementById('ai-unit').value.trim();
-  if (!name) { alert('请填写物品名称 Please enter item name'); return; }
-  if (!unit) { alert('请填写单位 Please enter unit (e.g. 个/pcs)'); return; }
-  const qty = Math.max(0, parseInt(document.getElementById('ai-qty').value) || 0);
-  const low = Math.max(0, parseInt(document.getElementById('ai-low').value) || 5);
-  items.push({
-    id:   'item_' + Date.now(),
-    cat:  addItemTargetCatId,
-    icon: addItemNewIcon,
-    name: name,
-    sub:  document.getElementById('ai-sub').value.trim(),
-    unit: unit,
-    qty:  qty,
-    low:  low
+function renderHist(){
+  const container=document.getElementById('list');
+  const hist=[...state.history].reverse().slice(0,80);
+  if(!hist.length){container.innerHTML='<div class="empty">暂无操作记录 No history yet</div>';return;}
+  let html='<div style="padding:0 16px 8px">';
+  let lastDate='';
+  hist.forEach(h=>{
+    const d=new Date(h.ts);
+    const ds=d.toLocaleDateString('zh-CN');
+    if(ds!==lastDate){html+=`<div class="sec-label">${ds}</div>`;lastDate=ds;}
+    const sign=h.delta>0?'+':'';
+    const col=h.delta>0?'var(--color-text-success)':'var(--color-text-danger)';
+    const time=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+    // 历史记录也显示双语标签
+    const unitLabel = getUnitLabel(h.unit);
+    html+=`<div class="hist-row">
+      <div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--color-text-primary)">${h.name}</div><div style="font-size:12px;color:var(--color-text-tertiary)">${time}</div></div>
+      <div style="font-size:16px;font-weight:700;color:${col};margin-right:8px">${sign}${h.delta}</div>
+      <div style="font-size:13px;font-weight:500;color:var(--color-text-secondary);min-width:40px;text-align:right">${h.newQty}<br><span style="font-size:10px;color:var(--color-text-tertiary)">${unitLabel}</span></div>
+    </div>`;
   });
-  closeAddItem();
-  renderDashboard();
-  saveDataToCloud();
+  html+='</div>';
+  container.innerHTML=html;
 }
 
-// ── 数量控制 ──
-function changeQty(id, delta) {
-  if (isAdminMode) return;
-  const item = items.find(i => i.id === id);
-  if (item) { item.qty = Math.max(0, item.qty + delta); renderDashboard(); saveDataToCloud(); }
-}
-function startQtyEdit(id) {
-  if (isAdminMode) return;
-  document.getElementById('d-' + id).style.display = 'none';
-  const inp = document.getElementById('e-' + id);
-  inp.style.display = 'inline-block';
-  inp.value = items.find(i => i.id === id).qty;
-  inp.focus(); inp.select();
-}
-function finishQtyEdit(id) {
-  const inp  = document.getElementById('e-' + id);
-  const disp = document.getElementById('d-' + id);
-  const v = inp.value.trim();
-  if (v !== '') {
-    const item = items.find(i => i.id === id);
-    const n = isNaN(v) ? 0 : Math.max(0, Number(v));
-    item.qty = n;
-    saveDataToCloud();
-    renderDashboard();
-  }
-  inp.style.display  = 'none';
-  disp.style.display = 'inline-block';
-}
-function getItemStatus(item) {
-  if (item.qty === 0)       return 'out';
-  if (item.qty <= item.low) return 'low';
-  return 'healthy';
-}
-function toggleCheck(id) {
-  if (isAdminMode) return;
-  checked[id] = !checked[id];
-  renderDashboard(); saveDataToCloud();
+function adj(id,d){
+  const it=state.items.find(i=>i.id===id);
+  if(!it)return;
+  const nq=Math.max(0,it.qty+d);
+  state.history.push({id,name:it.name,delta:nq-it.qty,newQty:nq,unit:it.unit,ts:Date.now()});
+  it.qty=nq;
+  save();renderStats();render();
 }
 
-// ── 管理员模式 ──
-function toggleAdminMode() {
-  isAdminMode = !isAdminMode;
-  const btn  = document.getElementById('btn-admin');
-  const wrap = document.getElementById('main-wrap');
-  btn.classList.toggle('active', isAdminMode);
-  wrap.classList.toggle('admin-on', isAdminMode);
-  addCatBtnEl.classList.toggle('hidden', !isAdminMode);
-  btn.querySelector('svg') 
-    ? btn.lastChild.textContent = isAdminMode ? ' ✅ 完成 Done' : ' 管理员 Admin'
-    : btn.textContent = isAdminMode ? '✅ 完成 Done' : '🛠️ Admin';
-  renderDashboard();
+function startQty(id){editingQtyId=id;render();setTimeout(()=>{const e=document.getElementById('qi_'+id);if(e){e.focus();e.select();}},50);}
+function commitQty(id){
+  const e=document.getElementById('qi_'+id);if(!e)return;
+  const it=state.items.find(i=>i.id===id);if(!it)return;
+  const nq=Math.max(0,parseInt(e.value)||0);
+  if(nq!==it.qty)state.history.push({id,name:it.name,delta:nq-it.qty,newQty:nq,unit:it.unit,ts:Date.now()});
+  it.qty=nq;editingQtyId=null;save();renderStats();render();
 }
 
-// ── 编辑元数据 ──
-async function editCategoryMetadata(catId) {
-  if (!isAdminMode) return;
-  const cat = cats.find(c => c.id === catId);
-  const newName = await showPrompt(
-    '修改分类名称 Edit Category',
-    '例 e.g.: 🧴 清洁用品 Cleaning',
-    cat.name
-  );
-  if (newName) { cat.name = newName; renderDashboard(); saveDataToCloud(); }
-}
-async function editItemMetadata(itemId) {
-  if (!isAdminMode) return;
-  const item = items.find(i => i.id === itemId);
-  const newName = await showPrompt(
-    '修改物资名称 Edit Item Name',
-    '请用中英双语 e.g.: 威猛先生 Mr.Muscle',
-    item.name
-  );
-  if (newName) { item.name = newName; renderDashboard(); saveDataToCloud(); }
-}
-async function editItemSubtext(itemId) {
-  if (!isAdminMode) return;
-  const item = items.find(i => i.id === itemId);
-  const newSub = await showPrompt(
-    '修改备注 Edit Subtitle',
-    '副标题/规格说明（可留空）',
-    item.sub
-  );
-  if (newSub !== null) { item.sub = newSub; renderDashboard(); saveDataToCloud(); }
-}
-async function editItemUnit(itemId) {
-  if (!isAdminMode) return;
-  const item = items.find(i => i.id === itemId);
-  const newUnit = await showPrompt(
-    '修改单位 Edit Unit',
-    '必须中英双语 Must be bilingual\n例: 个/pcs  包/pack  罐/can  卷/roll  套/set  双/pair  片/pcs',
-    item.unit
-  );
-  if (newUnit) { item.unit = newUnit; renderDashboard(); saveDataToCloud(); }
-}
-function deleteItem(itemId) {
-  if (!isAdminMode) return;
-  const item = items.find(i => i.id === itemId);
-  if (!confirm(`🗑️ 确定删除 Delete?\n\n"${item.name}"\n\n此操作不可撤销 Cannot be undone.`)) return;
-  items = items.filter(i => i.id !== itemId);
-  if (checked[itemId]) delete checked[itemId];
-  renderDashboard(); saveDataToCloud();
-}
-async function addNewCategory() {
-  if (!isAdminMode) return;
-  const newName = await showPrompt(
-    '添加新分类 Add Category',
-    '请用 emoji + 中英双语\n例: 🚗 车辆配件 Vehicle Parts',
-    ''
-  );
-  if (newName) {
-    cats.push({ id: 'cat_' + Date.now(), name: newName, color: '#475569', bg: '#f8fafc', textColor: '#475569' });
-    renderDashboard(); saveDataToCloud();
-  }
-}
-function addNewItemToCategory(catId) {
-  if (!isAdminMode) return;
-  openAddItemModal(catId);
+function toggleCat(id){state.collapsed[id]=!state.collapsed[id];save();render();}
+function toggleLow(){showLow=!showLow;document.getElementById('low-btn').className='fbtn'+(showLow?' on':'');render();}
+function switchTab(t){
+  activeTab=t;
+  ['inv','hist','add','share'].forEach(x=>{const b=document.getElementById('t-'+x);if(b)b.className='tab'+(x===t?' on':'');});
+  document.getElementById('t-add').className='tab';
+  render();
 }
 
-// ── 渲染 ──
-function renderDashboard() {
-  const container = document.getElementById('checklist-container');
-  container.innerHTML = '';
+// 纯下拉菜单选择单位
+function openEditUnit(id){
+  const it=state.items.find(i=>i.id===id);if(!it)return;
+  
+  const optionsHtml = UNITS.map(u => `<option value="${u.v}" ${u.v === it.unit ? 'selected' : ''}>${u.l}</option>`).join('');
 
-  const totalItems   = items.length;
-  const checkedItems = Object.values(checked).filter(Boolean).length;
-  document.getElementById('prog-text').textContent = `${checkedItems} / ${totalItems} (${totalItems > 0 ? Math.round(checkedItems / totalItems * 100) : 0}%)`;
-  document.getElementById('prog-fill').style.width = (totalItems > 0 ? Math.round(checkedItems / totalItems * 100) : 0) + '%';
+  document.getElementById('sheet').innerHTML=`
+    <div class="sheet-title">✏️ 更换单位 Edit Unit</div>
+    <div class="sheet-sub">${it.name}</div>
+    <div class="field"><label>选择单位 Select Unit</label>
+      <select id="eu-val">
+        ${optionsHtml}
+      </select>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn p" onclick="saveUnit('${id}')">✅ 保存 Save</button>
+      <button class="mbtn s" onclick="closeSheet()">取消 Cancel</button>
+    </div>`;
+  document.getElementById('overlay').style.display='flex';
+}
+function saveUnit(id){
+  const it=state.items.find(i=>i.id===id);if(!it)return;
+  it.unit=document.getElementById('eu-val').value;
+  save();closeSheet();render();toast('✅ 单位已更新');
+}
 
-  cats.forEach(cat => {
-    const catItems = items.filter(item => {
-      if (item.cat !== cat.id) return false;
-      const q = currentSearchQuery;
-      if (!q) return true;
-      return item.name.toLowerCase().includes(q) || (item.sub || '').toLowerCase().includes(q);
-    });
-    if (!isAdminMode && catItems.length === 0) return;
+// 纯下拉菜单选择单位
+function openEditItem(id){
+  const it=state.items.find(i=>i.id===id);if(!it)return;
+  const unitOptions = UNITS.map(u => `<option value="${u.v}" ${u.v === it.unit ? 'selected' : ''}>${u.l}</option>`).join('');
+  
+  document.getElementById('sheet').innerHTML=`
+    <div class="sheet-title">✏️ 编辑物品 Edit Item</div>
+    <div class="sheet-sub">修改物品信息</div>
+    <div class="field"><label>名称 Name (双语)</label><input id="ei-name" value="${it.name}"></div>
+    <div class="frow">
+      <div class="field"><label>单位 Unit *</label>
+        <select id="ei-unit">${unitOptions}</select>
+      </div>
+      <div class="field"><label>备注 Sub (可选)</label><input id="ei-sub" value="${it.sub}"></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>数量 Qty</label><input id="ei-qty" type="number" value="${it.qty}" min="0"></div>
+      <div class="field"><label>低库存警戒 Low</label><input id="ei-low" type="number" value="${it.low}" min="0"></div>
+    </div>
+    <div class="field"><label>图标 Icon (点击更换)</label>
+      <div class="icon-grid" id="ig">${ICONS.map(ic=>`<button class="ig-btn${ic===it.icon?' sel':''}" onclick="selIcon(this,'${ic}')">${ic}</button>`).join('')}</div>
+    </div>
+    <div class="field"><label>分类 Category</label>
+      <select id="ei-cat">${state.cats.map(c=>`<option value="${c.id}"${c.id===it.cat?' selected':''}>${c.name}</option>`).join('')}</select>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn p" onclick="saveEditItem('${id}')">✅ 保存 Save</button>
+      <button class="mbtn d" onclick="deleteItem('${id}')">🗑️ 删除</button>
+      <button class="mbtn s" onclick="closeSheet()">取消</button>
+    </div>`;
+  document.getElementById('overlay').style.display='flex';
+}
+let selIconVal='';
+function selIcon(btn,ic){selIconVal=ic;document.querySelectorAll('.ig-btn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
 
-    const section = document.createElement('div');
-    section.className = 'category-section';
+function saveEditItem(id){
+  const it=state.items.find(i=>i.id===id);if(!it)return;
+  it.name=document.getElementById('ei-name').value.trim()||it.name;
+  it.unit=document.getElementById('ei-unit').value;
+  it.sub=document.getElementById('ei-sub').value.trim();
+  it.qty=Math.max(0,parseInt(document.getElementById('ei-qty').value)||0);
+  it.low=Math.max(0,parseInt(document.getElementById('ei-low').value)||0);
+  it.cat=document.getElementById('ei-cat').value;
+  if(selIconVal)it.icon=selIconVal;
+  selIconVal='';
+  save();closeSheet();renderStats();render();toast('✅ 已保存 Saved');
+}
+function deleteItem(id){
+  if(!confirm('⚠️ 确定删除这个物品吗？此操作不可逆。'))return;
+  state.items=state.items.filter(i=>i.id!==id);
+  save();closeSheet();renderStats();render();toast('🗑️ 已删除');
+}
 
-    // 分类头部
-    const header = document.createElement('div');
-    header.className = 'category-header';
-    header.style.background = cat.bg;
-    header.style.color = cat.textColor;
-    if (isAdminMode) header.onclick = () => editCategoryMetadata(cat.id);
-    header.innerHTML = `
-      <span>${cat.name}<span class="cat-edit-hint">✎ 点击改名</span></span>
-      <span class="cat-badge">${catItems.length} 项</span>`;
-    section.appendChild(header);
+// 纯下拉菜单选择单位
+function openAddItem(catId){
+  selIconVal='🏷️';
+  const unitOptions = UNITS.map(u => `<option value="${u.v}">${u.l}</option>`).join('');
 
-    // 物资行
-    catItems.forEach(item => {
-      const status = getItemStatus(item);
-      if (status === 'out' && !isAdminMode) return;
-
-      const row = document.createElement('div');
-      row.className = `item-row ${status === 'low' ? 'low-stock' : ''} ${checked[item.id] ? 'checked-view' : ''}`;
-      row.dataset.id = item.id;
-
-      // 勾选框
-      const chkHTML = !isAdminMode
-        ? `<div class="row-chk" onclick="toggleCheck('${item.id}')"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`
-        : '';
-
-      // 图标
-      const ricoHTML = `<div class="rico" ${isAdminMode ? `onclick="showEmojiModal('${item.id}')" title="点击换图标"` : ''}>${item.icon}</div>`;
-
-      // 文本
-      const subContent = item.sub
-        ? `<div class="rsub" ${isAdminMode ? `onclick="editItemSubtext('${item.id}')"` : ''}>${item.sub}</div>`
-        : (isAdminMode ? `<div class="rsub" onclick="editItemSubtext('${item.id}')"><em style="opacity:.4">+ 备注 add note</em></div>` : '');
-      const textHTML = `<div class="rtext-wrap">
-        <div class="rname" ${isAdminMode ? `onclick="editItemMetadata('${item.id}')"` : ''}>${item.name}</div>
-        ${subContent}
-      </div>`;
-
-      // 计数器
-      const qColor = item.qty === 0 ? '#ef4444' : cat.textColor;
-      const ctrHTML = `<div class="counter-box">
-        <button class="btn-ctr" onclick="changeQty('${item.id}',-1)" ${isAdminMode ? 'disabled style="opacity:.25"' : ''}>−</button>
-        <div class="qty-grp">
-          <span id="d-${item.id}" class="qty-disp" style="color:${qColor}" onclick="startQtyEdit('${item.id}')">${item.qty}</span>
-          <input id="e-${item.id}" class="qty-inp" type="number" min="0"
-            onblur="finishQtyEdit('${item.id}')"
-            onkeydown="if(event.key==='Enter'||event.key==='Escape')finishQtyEdit('${item.id}')">
-          <div class="unit-lbl" ${isAdminMode ? `onclick="editItemUnit('${item.id}')"` : ''}>${item.unit}</div>
-        </div>
-        <button class="btn-ctr" onclick="changeQty('${item.id}',1)" ${isAdminMode ? 'disabled style="opacity:.25"' : ''}>+</button>
-      </div>`;
-
-      // 删除按钮
-      const delHTML = `<button class="btn-del-item" onclick="deleteItem('${item.id}')" title="删除">🗑️</button>`;
-
-      row.innerHTML = chkHTML + ricoHTML + textHTML + ctrHTML + delHTML;
-      section.appendChild(row);
-    });
-
-    // 添加物品按钮
-    const addItemBtn = document.createElement('div');
-    addItemBtn.className = 'btn-add-item-row';
-    addItemBtn.textContent = `➕ 在此分类下添加新物品 Add Item to [${cat.name}]`;
-    addItemBtn.onclick = () => addNewItemToCategory(cat.id);
-    section.appendChild(addItemBtn);
-
-    container.appendChild(section);
+  document.getElementById('sheet').innerHTML=`
+    <div class="sheet-title">➕ 新增物品 Add Item</div>
+    <div class="sheet-sub">添加新物品到仓库</div>
+    <div class="field"><label>名称 Name * (请用中英双语)</label><input id="ai-name" placeholder="例: 安全眼镜 Safety Glasses"></div>
+    <div class="frow">
+      <div class="field"><label>初始数量 Qty</label><input id="ai-qty" type="number" value="0" min="0"></div>
+      <div class="field"><label>单位 Unit * (下拉选择)</label>
+        <select id="ai-unit">${unitOptions}</select>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>备注/规格 Sub (可选)</label><input id="ai-sub" placeholder="尺寸、用途..."></div>
+      <div class="field"><label>低库存警戒 Low Alert</label><input id="ai-low" type="number" value="2" min="0"></div>
+    </div>
+    <div class="field"><label>选择图标 Icon</label>
+      <div class="icon-grid">${ICONS.map(ic=>`<button class="ig-btn${ic==='🏷️'?' sel':''}" onclick="selIcon(this,'${ic}')">${ic}</button>`).join('')}</div>
+    </div>
+    <div class="field"><label>分类 Category</label>
+      <select id="ai-cat">${state.cats.map(c=>`<option value="${c.id}"${c.id===catId?' selected':''}>${c.name}</option>`).join('')}</select>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn p" onclick="doAddItem()">✅ 添加 Add</button>
+      <button class="mbtn s" onclick="closeSheet()">取消 Cancel</button>
+    </div>`;
+  document.getElementById('overlay').style.display='flex';
+}
+function doAddItem(){
+  const name=document.getElementById('ai-name').value.trim();
+  if(!name){toast('❌ 请输入名称');return;}
+  const id='item_'+Date.now();
+  state.items.push({
+    id,cat:document.getElementById('ai-cat').value,
+    name,sub:document.getElementById('ai-sub').value.trim(),
+    unit:document.getElementById('ai-unit').value,
+    qty:Math.max(0,parseInt(document.getElementById('ai-qty').value)||0),
+    low:Math.max(0,parseInt(document.getElementById('ai-low').value)||2),
+    icon:selIconVal||'🏷️'
   });
+  selIconVal='';save();closeSheet();renderStats();render();toast('✅ 已添加！');
 }
 
-function filterItems(val) {
-  currentSearchQuery = val.toLowerCase().trim();
-  renderDashboard();
+function openExport(){
+  const d=JSON.stringify({version:2,ts:Date.now(),cats:state.cats,items:state.items,history:state.history.slice(-50)});
+  document.getElementById('sheet').innerHTML=`
+    <div class="sheet-title">📤 分享数据 Share</div>
+    <div class="sheet-sub">复制代码发给同事，他们导入后看到相同数据</div>
+    <div class="field"><textarea readonly id="ex-ta">${d}</textarea></div>
+    <div class="mbtns">
+      <button class="mbtn p" onclick="doCopy()">📑 复制 Copy</button>
+      <button class="mbtn s" onclick="closeSheet()">关闭 Close</button>
+    </div>`;
+  document.getElementById('overlay').style.display='flex';
+}
+function doCopy(){const t=document.getElementById('ex-ta');t.select();try{document.execCommand('copy');toast('✅ 已复制！');}catch(e){toast('请手动复制');}}
+
+function openImport(){
+  document.getElementById('sheet').innerHTML=`
+    <div class="sheet-title">📥 导入数据 Import</div>
+    <div class="sheet-sub">粘贴同事发来的代码，点击导入</div>
+    <div class="field"><textarea id="im-ta" placeholder="粘贴数据代码…Paste data here…"></textarea></div>
+    <div class="mbtns">
+      <button class="mbtn p" onclick="doImport()">📥 确认导入 Import</button>
+      <button class="mbtn s" onclick="closeSheet()">取消 Cancel</button>
+    </div>`;
+  document.getElementById('overlay').style.display='flex';
+}
+function doImport(){
+  try{
+    const d=JSON.parse(document.getElementById('im-ta').value.trim());
+    if(d.items){state.items=d.items;}
+    if(d.cats){state.cats=d.cats;}
+    if(d.history){state.history=[...state.history,...d.history].slice(-300);}
+    save();closeSheet();renderStats();render();toast('✅ 导入成功！');
+  }catch(e){toast('❌ 数据格式错误，请重新复制');}
 }
 
-function resetSystemToFactoryDefault() {
-  if (confirm('⚠️ 重置系统(Factory Reset)\n这将从云端彻底清空数据库，所有人看到的进度都会恢复到工厂初始默认状态。\nThis will wipe the cloud DB, all devices will restore to default data.\n\n确定执行吗？Proceed?')) {
-    useFactoryData();
-    checked = {};
-    saveDataToCloud();
-    renderDashboard();
-  }
-}
+function closeSheet(){document.getElementById('overlay').style.display='none';selIconVal='';}
+function overlayClick(e){if(e.target===document.getElementById('overlay'))closeSheet();}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.className='toast on';setTimeout(()=>t.className='toast',2500);}
 
-// 工厂数据预设 — 所有单位已双语
-function useFactoryData() {
-  cats = [
-    {id:'cleaning',  name:'🧴 清洁用品 Cleaning',  color:'#2563eb', bg:'#eff6ff', textColor:'#2563eb'},
-    {id:'paint',     name:'🎨 油漆喷漆 Paint',      color:'#7c3aed', bg:'#f5f3ff', textColor:'#7c3aed'},
-    {id:'safety',    name:'🦺 安全设备 Safety',     color:'#059669', bg:'#ecfdf5', textColor:'#059669'},
-    {id:'tools',     name:'🔧 工具器材 Tools',      color:'#d97706', bg:'#fffbeb', textColor:'#d97706'},
-    {id:'materials', name:'📦 材料耗材 Materials',  color:'#dc2626', bg:'#fef2f2', textColor:'#dc2626'},
-  ];
-  items = [
-    {id:'mr_muscle',   cat:'cleaning', icon:'🧴', name:'威猛先生 Mr. Muscle',            sub:'多功能清洁剂 Multi-purpose cleaner', unit:'个/pcs',  qty:8,  low:3},
-    {id:'clorox',      cat:'cleaning', icon:'🫧', name:'高乐氏漂白水 Clorox Bleach',    sub:'消毒漂白剂 Disinfectant bleach',     unit:'个/pcs',  qty:18, low:5},
-    {id:'washing_pwd', cat:'cleaning', icon:'🧺', name:'洗衣粉 Washing Powder',         sub:'1包=5kg / 1bag=5kg',               unit:'包/pack', qty:12, low:3},
-    {id:'spray_black', cat:'paint',    icon:'🖤', name:'喷漆(黑) Spray Paint Black',    sub:'',                                 unit:'罐/can',  qty:10, low:3},
-    {id:'spray_white', cat:'paint',    icon:'🤍', name:'喷漆(白) Spray Paint White',    sub:'',                                 unit:'罐/can',  qty:20, low:5},
-    {id:'fire_base',   cat:'safety',   icon:'🧯', name:'灭火器 Fire Extinguisher',      sub:'含底座 incl. base',                unit:'套/set',  qty:20, low:5},
-    {id:'helmet_y',    cat:'safety',   icon:'⛑️', name:'安全帽(黄) Helmet Yellow',      sub:'',                                 unit:'顶/pcs',  qty:6,  low:2},
-    {id:'glove_wb',    cat:'safety',   icon:'🧤', name:'手套(白蓝) Gloves White/Blue',  sub:'',                                 unit:'双/pair', qty:44, low:5},
-    {id:'disc_107',    cat:'tools',    icon:'⚙️', name:'切割片 Cutting Disc 107mm',     sub:'107×1.2×16mm',                     unit:'片/pcs',  qty:70, low:10},
-    {id:'tape_by',     cat:'materials',icon:'📦', name:'警示胶带(黑黄) Warning Tape',   sub:'',                                 unit:'卷/roll', qty:11, low:3},
-  ];
-}
-
-// 初始化
-initEmojiGrid();
-initData();
+load();
 </script>
 </body>
 </html>
