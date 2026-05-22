@@ -1,5 +1,10 @@
 {
+  "name": "safety-inventory",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "echo 'No build step required'"
+  },
   "dependencies": {
-    "@vercel/postgres": "latest"
+    "@vercel/postgres": "^0.8.0"
   }
 }
