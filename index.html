@@ -12,17 +12,20 @@
   --color-background-secondary:#f1f5f9;
   --color-background-danger:#fef2f2;
   --color-background-info:#eff6ff;
+  --color-background-purchase:#fdf4ff;
   --color-border-tertiary:#e2e8f0;
   --color-border-secondary:#cbd5e1;
   --color-border-danger:#fca5a5;
   --color-border-info:#bfdbfe;
   --color-border-success:#86efac;
+  --color-border-purchase:#e9d5ff;
   --color-text-primary:#0f172a;
   --color-text-secondary:#475569;
   --color-text-tertiary:#94a3b8;
   --color-text-danger:#ef4444;
   --color-text-info:#3b82f6;
   --color-text-success:#10b981;
+  --color-text-purchase:#9333ea;
   --border-radius-md:8px;
   --border-radius-lg:12px;
 }
@@ -39,12 +42,11 @@ body{font-family:var(--font-sans);background:#f8fafc}
 .hbtn:active{opacity:.7}
 .search-row{display:flex;gap:8px}
 .sw{flex:1;position:relative}
-.sw i{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--color-text-tertiary);pointer-events:none}
 .sw input{width:100%;padding:8px 10px 8px 30px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:14px;background:var(--color-background-secondary);color:var(--color-text-primary)}
 .sw input:focus{outline:none;border-color:var(--color-border-info)}
 .fbtn{border:0.5px solid var(--color-border-tertiary);background:none;border-radius:var(--border-radius-md);padding:8px 10px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;white-space:nowrap}
 .fbtn.on{background:var(--color-background-danger);color:var(--color-text-danger);border-color:var(--color-border-danger)}
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
 .stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px;text-align:center}
 .stat-v{font-size:18px;font-weight:700;color:var(--color-text-primary)}
 .stat-l{font-size:11px;color:var(--color-text-secondary);margin-top:1px}
@@ -69,12 +71,14 @@ body{font-family:var(--font-sans);background:#f8fafc}
 .qinput:focus{outline:none}
 .edit-btn{background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:16px;padding:2px;flex-shrink:0}
 .edit-btn:hover{color:var(--color-text-secondary)}
+.buy-btn{background:none;border:none;cursor:pointer;font-size:15px;padding:2px;flex-shrink:0;opacity:0.65;line-height:1}
+.buy-btn:hover{opacity:1}
 .add-item-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;background:#f8fafc;border:1px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-info);font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-bottom:6px}
 .add-item-btn:active{background:#f1f5f9}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--color-background-primary);border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 -4px 20px rgba(0,0,0,0.1)}
 .sheet-title{font-size:16px;font-weight:700;color:var(--color-text-primary);margin-bottom:4px;text-align:center}
-.sheet-sub{font-size:12px;color:var(--text-tertiary);margin-bottom:16px;text-align:center}
+.sheet-sub{font-size:12px;color:var(--color-text-tertiary);margin-bottom:16px;text-align:center}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:4px}
 .field input,.field select,.field textarea{width:100%;border:1.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:14px;background:var(--color-background-primary);color:var(--color-text-primary)}
@@ -84,11 +88,13 @@ body{font-family:var(--font-sans);background:#f8fafc}
 .mbtns{display:flex;gap:8px;margin-top:16px}
 .mbtn{flex:1;padding:12px;border-radius:var(--border-radius-md);font-size:14px;cursor:pointer;border:none;font-weight:600}
 .mbtn.p{background:var(--color-text-info);color:#fff}
+.mbtn.pp{background:var(--color-text-purchase);color:#fff}
 .mbtn.s{background:var(--color-background-secondary);color:var(--color-text-secondary)}
 .mbtn.d{background:var(--color-background-danger);color:var(--color-text-danger)}
 .tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--color-background-primary);border-top:0.5px solid var(--color-border-tertiary);display:flex;z-index:10;padding-bottom:env(safe-area-inset-bottom)}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;font-size:10px;font-weight:600;color:var(--color-text-tertiary);cursor:pointer;border:none;background:none}
 .tab.on{color:var(--color-text-info)}
+.tab.on.purchase-tab{color:var(--color-text-purchase)}
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1e293b;border-radius:var(--border-radius-md);padding:10px 20px;font-size:13px;font-weight:500;color:#fff;z-index:300;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
 .toast.on{opacity:1}
 .empty{text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:14px}
@@ -99,19 +105,46 @@ body{font-family:var(--font-sans);background:#f8fafc}
 .ig-btn{border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:22px;padding:8px;cursor:pointer;text-align:center}
 .ig-btn.sel{border-color:var(--color-text-info);background:var(--color-background-info)}
 
-/* ===== View-Only Mode Styles (老板专属免打扰模式) ===== */
-body.view-only .cb, 
-body.view-only .edit-btn, 
-body.view-only .add-item-btn, 
+/* ===== Purchase Records Styles ===== */
+.purchase-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-purchase);border-radius:var(--border-radius-lg);padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(147,51,234,0.06)}
+.purchase-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.purchase-person{display:flex;align-items:center;gap:8px}
+.person-avatar{width:32px;height:32px;border-radius:50%;background:var(--color-background-purchase);border:1.5px solid var(--color-border-purchase);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--color-text-purchase);flex-shrink:0}
+.person-name{font-size:14px;font-weight:700;color:var(--color-text-primary)}
+.purchase-time{font-size:11px;color:var(--color-text-tertiary);margin-top:1px}
+.purchase-items-list{display:flex;flex-direction:column;gap:4px}
+.purchase-item-row{display:flex;align-items:center;background:var(--color-background-purchase);border-radius:6px;padding:7px 10px;gap:6px}
+.purchase-item-icon{font-size:15px;flex-shrink:0}
+.purchase-item-name{font-size:13px;color:var(--color-text-primary);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.purchase-item-qty{font-size:13px;font-weight:700;color:var(--color-text-purchase);margin-left:4px;white-space:nowrap;flex-shrink:0}
+.purchase-filter-row{display:flex;gap:8px;padding:10px 16px 4px;overflow-x:auto;scrollbar-width:none}
+.purchase-filter-row::-webkit-scrollbar{display:none}
+.pf-chip{flex-shrink:0;border:1px solid var(--color-border-tertiary);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--color-text-secondary);background:var(--color-background-primary);cursor:pointer;white-space:nowrap}
+.pf-chip.on{background:var(--color-background-purchase);color:var(--color-text-purchase);border-color:var(--color-border-purchase)}
+.purchase-delete-btn{background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:14px;padding:4px;flex-shrink:0;border-radius:4px}
+.purchase-delete-btn:hover{color:var(--color-text-danger);background:var(--color-background-danger)}
+.purchase-notes{font-size:11px;color:var(--color-text-tertiary);margin-top:6px;font-style:italic;padding:0 2px}
+.purchase-summary-badge{font-size:11px;font-weight:600;color:var(--color-text-purchase);background:var(--color-background-purchase);border-radius:4px;padding:2px 7px;border:1px solid var(--color-border-purchase)}
+
+/* Multi-item rows in modal */
+.pi-row{display:flex;gap:6px;align-items:center;margin-bottom:8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px}
+.pi-row select{flex:1;border:1.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px;font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary);min-width:0}
+.pi-row input[type=number]{width:60px;flex-shrink:0;border:1.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 6px;font-size:13px;text-align:center;background:var(--color-background-primary);color:var(--color-text-primary)}
+.pi-row .pir-unit{font-size:11px;color:var(--color-text-secondary);white-space:nowrap;flex-shrink:0;min-width:28px}
+.pi-row select:focus,.pi-row input:focus{outline:none;border-color:var(--color-text-purchase)}
+.pi-rm{background:none;border:none;cursor:pointer;color:var(--color-text-danger);font-size:20px;padding:0 2px;flex-shrink:0;line-height:1}
+.add-pi-btn{display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;background:var(--color-background-purchase);border:1px dashed var(--color-border-purchase);border-radius:var(--border-radius-md);color:var(--color-text-purchase);font-size:12px;font-weight:600;cursor:pointer;width:100%;margin-bottom:4px}
+
+/* ===== View-Only Mode ===== */
+body.view-only .cb,
+body.view-only .edit-btn,
+body.view-only .buy-btn,
+body.view-only .add-item-btn,
 body.view-only #t-add,
-body.view-only .hbtn { 
-  display: none !important; 
-}
-body.view-only .qbadge, 
-body.view-only .unit-tag, 
-body.view-only .ch { 
-  pointer-events: none !important; 
-}
+body.view-only .hbtn { display:none!important; }
+body.view-only .qbadge,
+body.view-only .unit-tag,
+body.view-only .ch { pointer-events:none!important; }
 </style>
 </head>
 <body>
@@ -130,7 +163,7 @@ body.view-only .ch {
   </div>
   <div class="search-row">
     <div class="sw"><input id="sq" type="text" placeholder="搜索物品 Search…" oninput="render()"></div>
-    <button class="fbtn" id="low-btn" onclick="toggleLow()">⚠️ 低库存 Low Stock</button>
+    <button class="fbtn" id="low-btn" onclick="toggleLow()">⚠️ 低库存 Low</button>
   </div>
 </div>
 <div class="stats" id="stats"></div>
@@ -138,10 +171,10 @@ body.view-only .ch {
 </div>
 
 <div class="tab-bar">
-  <button class="tab on" id="t-inv" onclick="switchTab('inv')"><span style="font-size:20px">📦</span>库存 Inventory</button>
+  <button class="tab on" id="t-inv" onclick="switchTab('inv')"><span style="font-size:20px">📦</span>库存 Stock</button>
   <button class="tab" id="t-hist" onclick="switchTab('hist')"><span style="font-size:20px">📜</span>记录 History</button>
+  <button class="tab" id="t-buy" onclick="switchTab('buy')"><span style="font-size:20px">🛒</span>购买 Purchase</button>
   <button class="tab" id="t-add" onclick="openAddItem()"><span style="font-size:20px">➕</span>新增 Add</button>
-  <button class="tab" id="t-share" onclick="openExport()"><span style="font-size:20px">📤</span>分享 Share</button>
 </div>
 
 <div id="overlay" class="overlay" style="display:none" onclick="overlayClick(event)">
@@ -150,39 +183,23 @@ body.view-only .ch {
 <div class="toast" id="toast"></div>
 
 <script>
-const UNITS = [
-  { v: 'pcs', l: '个 / pcs' },
-  { v: 'pack', l: '包 / pack' },
-  { v: 'box', l: '箱 / box' },
-  { v: 'biji', l: '粒 / biji' },
-  { v: 'pairs', l: '双 / pairs' },
-  { v: 'set', l: '套 / set' },
-  { v: 'roll', l: '卷 / roll' },
-  { v: 'bag', l: '袋 / bag' },
-  { v: 'can', l: '罐 / can' },
-  { v: 'bottle', l: '瓶 / bottle' },
-  { v: 'strip', l: '条 / strip' },
-  { v: 'kg', l: '公斤 / kg' },
-  { v: 'liter', l: '升 / liter' },
-  { v: 'unit', l: '台 / unit' },
-  { v: 'tong', l: '桶 / Tong' }
+const UNITS=[
+  {v:'pcs',l:'个 / pcs'},{v:'pack',l:'包 / pack'},{v:'box',l:'箱 / box'},
+  {v:'biji',l:'粒 / biji'},{v:'pairs',l:'双 / pairs'},{v:'set',l:'套 / set'},
+  {v:'roll',l:'卷 / roll'},{v:'bag',l:'袋 / bag'},{v:'can',l:'罐 / can'},
+  {v:'bottle',l:'瓶 / bottle'},{v:'strip',l:'条 / strip'},{v:'kg',l:'公斤 / kg'},
+  {v:'liter',l:'升 / liter'},{v:'unit',l:'台 / unit'},{v:'tong',l:'桶 / Tong'}
 ];
+function getUnitLabel(v){const u=UNITS.find(x=>x.v===v);if(v==='pail')return '桶 / Tong';return u?u.l:v;}
 
-function getUnitLabel(v) {
-  const u = UNITS.find(x => x.v === v);
-  if (v === 'pail') return '桶 / Tong'; 
-  return u ? u.l : v;
-}
-
-const DEFAULT_CATS = [
+const DEFAULT_CATS=[
   {id:'cleaning',name:'清洁用品 Cleaning',color:'#dcf5ea'},
   {id:'paint',name:'油漆喷漆 Paint',color:'#faecea'},
   {id:'safety',name:'安全设备 Safety',color:'#e6f1fb'},
   {id:'tools',name:'工具器材 Tools',color:'#faeeda'},
   {id:'materials',name:'材料耗材 Materials',color:'#eaf3de'},
 ];
-
-const DEFAULT_ITEMS = [
+const DEFAULT_ITEMS=[
   {id:'mr_muscle',cat:'cleaning',name:'威猛先生 Mr. Muscle',sub:'多功能清洁剂 Multi-purpose Cleaner',unit:'biji',qty:8,low:3,icon:'🧴'},
   {id:'clorox',cat:'cleaning',name:'高乐氏漂白水 Clorox Bleach',sub:'消毒漂白剂 Disinfectant Bleach',unit:'biji',qty:18,low:5,icon:'🫧'},
   {id:'degreaser',cat:'cleaning',name:'工业脱脂剂 Alkaline Degreaser P-529',sub:'工业脱脂剂 Industrial Degreaser',unit:'biji',qty:3,low:2,icon:'🧹'},
@@ -234,177 +251,259 @@ const DEFAULT_ITEMS = [
   {id:'flag_red',cat:'materials',name:'红旗 Flag Red',sub:'',unit:'pcs',qty:24,low:5,icon:'🚩'},
   {id:'flag_green',cat:'materials',name:'绿旗 Flag Green',sub:'',unit:'pcs',qty:2,low:3,icon:'🚩'},
 ];
-
 const ICONS=['🧴','🫧','🧹','🧺','🌸','🖤','🤍','💙','❤️','🪣','🧯','⛑️','🧥','🥾','🦺','🧤','🔒','⚙️','📏','🔋','🔑','🚧','📦','🛍️','🚩','⚠️','📯','🥽','🔧','🪛','📋','🏷️','💊','🧲','🪝','📐'];
 
-let state = {cats:[...DEFAULT_CATS],items:[...DEFAULT_ITEMS.map(i=>({...i}))],history:[],collapsed:{}};
-let activeTab='inv';
-let showLow=false;
-let editingQtyId=null;
-const syncStatusEl = document.getElementById('sync-status');
+let state={cats:[...DEFAULT_CATS],items:[...DEFAULT_ITEMS.map(i=>({...i}))],history:[],purchases:[],collapsed:{}};
+let activeTab='inv',showLow=false,editingQtyId=null,purchaseFilterPerson='all';
+const syncStatusEl=document.getElementById('sync-status');
 
-// 1. 安全且支持静默轮询的 load (加入防缓存机制)
-async function load(isSilent = false){
-  // 如果用户正在打字输入数量，或者打开了弹窗，静默刷新不会打断他们
-  if (isSilent && (editingQtyId !== null || document.getElementById('overlay').style.display !== 'none')) {
-    return; 
-  }
-  
-  if(!isSilent) {
-    syncStatusEl.textContent = '🔄 加载中...';
-    syncStatusEl.className = 'sync-status';
-  }
+// ─────────── PURCHASE FUNCTIONS ───────────
 
-  try{
-    // t=${Date.now()} 和 cache: 'no-store' 确保绕过苹果系统霸道的缓存机制
-    const res = await fetch(`/api/sync?t=${Date.now()}`, { cache: 'no-store' });
-    const cloudData = await res.json();
-    
-    if(cloudData && cloudData.items && cloudData.items.length > 0) {
-      state.items = cloudData.items.map(cloudItem => {
-        const defItem = DEFAULT_ITEMS.find(d => d.id === cloudItem.id);
-        if(defItem) return { ...cloudItem, name: defItem.name, sub: defItem.sub, unit: defItem.unit };
-        return cloudItem;
-      });
-      state.cats = cloudData.cats || state.cats;
-      state.history = cloudData.history || [];
-      state.collapsed = cloudData.collapsed || {};
-    }
-    
-    syncStatusEl.textContent = '🟢 已同步 Synced';
-    syncStatusEl.className = 'sync-status synced';
-  }catch(e){
-    console.error('API Load Error:', e);
-    if(!isSilent){
-      syncStatusEl.textContent = '🔴 离线 Offline';
-      syncStatusEl.className = 'sync-status offline';
-    }
-  }
-  renderStats(); render();
+function openLogPurchase(preItemId){
+  const itemOpts=state.items.map(it=>`<option value="${it.id}" ${it.id===preItemId?'selected':''}>${it.icon} ${it.name}</option>`).join('');
+  document.getElementById('sheet').innerHTML=`
+    <div class="sheet-title">🛒 记录购买 Log Purchase</div>
+    <div class="sheet-sub">记录谁买了什么 · Who bought what</div>
+    <div class="field">
+      <label>购买者姓名 Buyer Name *</label>
+      <input id="bp-name" placeholder="例: Ali, 张三, Ah Huat..." autocomplete="off">
+    </div>
+    <div class="field">
+      <label>购买日期 Purchase Date</label>
+      <input id="bp-date" type="date" value="${new Date().toISOString().split('T')[0]}">
+    </div>
+    <div class="field">
+      <label>购买物品 Items Purchased *</label>
+      <div id="pi-list"></div>
+      <button class="add-pi-btn" type="button" onclick="addPurchaseItemRow(null)">➕ 再加一件物品 Add Another Item</button>
+    </div>
+    <div class="field">
+      <label>备注 Notes (可选 Optional)</label>
+      <input id="bp-notes" placeholder="例: 从 Aeon 买 / Hardware shop / RM120...">
+    </div>
+    <div class="mbtns">
+      <button class="mbtn pp" onclick="doLogPurchase()">✅ 保存 Save Record</button>
+      <button class="mbtn s" onclick="closeSheet()">取消 Cancel</button>
+    </div>`;
+  document.getElementById('overlay').style.display='flex';
+  addPurchaseItemRow(preItemId||null);
 }
 
-// 2. 聪明的加减函数 (合并防冲突保存 Fetch-Merge-Save)
-async function adj(id, d){
-  const localIt = state.items.find(i => i.id === id);
-  if(!localIt) return;
-  
-  // A. 乐观更新：立刻让画面产生变化，保证操作流畅
-  localIt.qty = Math.max(0, localIt.qty + d);
-  renderStats(); render();
+function addPurchaseItemRow(preItemId){
+  const listEl=document.getElementById('pi-list');if(!listEl)return;
+  const rowId='pir_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  const itemOpts=state.items.map(it=>`<option value="${it.id}" ${it.id===preItemId?'selected':''}>${it.icon} ${it.name}</option>`).join('');
+  const unitText=preItemId?(state.items.find(i=>i.id===preItemId)||{unit:''}).unit:'';
+  const div=document.createElement('div');
+  div.className='pi-row';div.id=rowId;
+  div.innerHTML=`
+    <select onchange="updatePurchaseRowUnit(this)">${itemOpts}</select>
+    <input type="number" value="1" min="1" placeholder="Qty">
+    <span class="pir-unit">${unitText}</span>
+    <button class="pi-rm" type="button" onclick="document.getElementById('${rowId}').remove()">×</button>`;
+  listEl.appendChild(div);
+}
 
-  syncStatusEl.textContent = '⏳ 保存中...';
-  syncStatusEl.className = 'sync-status';
+function updatePurchaseRowUnit(sel){
+  const it=state.items.find(i=>i.id===sel.value);
+  const span=sel.parentElement.querySelector('.pir-unit');
+  if(span)span.textContent=it?it.unit:'';
+}
 
-  try {
-    // B. 一瞬间去服务器拉取最新数据，防止覆盖同事刚刚的操作
-    const res = await fetch(`/api/sync?t=${Date.now()}`, { cache: 'no-store' });
-    const serverData = await res.json();
-    
-    if(serverData && serverData.items) {
-      const serverIt = serverData.items.find(i => i.id === id);
-      if(serverIt) {
-        // C. 在服务器的真实数量上进行加减
-        const newRealQty = Math.max(0, serverIt.qty + d);
-        const actualDelta = newRealQty - serverIt.qty;
-        
-        serverIt.qty = newRealQty;
-        if(!serverData.history) serverData.history = [];
-        serverData.history.push({id, name: localIt.name, delta: actualDelta, newQty: newRealQty, unit: localIt.unit, ts: Date.now()});
-        
-        // D. 把合并后的安全数据传回服务器
-        await fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(serverData)
-        });
-        
-        // E. 本地状态与服务器彻底同步
-        state.items = serverData.items;
-        state.history = serverData.history;
+function doLogPurchase(){
+  const name=document.getElementById('bp-name').value.trim();
+  if(!name){toast('❌ 请输入购买者姓名 Enter buyer name');return;}
+  const dateVal=document.getElementById('bp-date').value;
+  const notes=document.getElementById('bp-notes').value.trim();
+  const rows=document.querySelectorAll('#pi-list .pi-row');
+  if(!rows.length){toast('❌ 请添加至少一件物品');return;}
+  const purchasedItems=[];
+  for(const row of rows){
+    const sel=row.querySelector('select');
+    const inp=row.querySelector('input[type=number]');
+    const qty=Math.max(1,parseInt(inp.value)||1);
+    const it=state.items.find(i=>i.id===sel.value);
+    if(!it)continue;
+    purchasedItems.push({itemId:it.id,name:it.name,icon:it.icon,qty,unit:it.unit});
+  }
+  if(!purchasedItems.length){toast('❌ 请选择有效物品');return;}
+  const ts=dateVal?new Date(dateVal+'T12:00:00').getTime():Date.now();
+  if(!state.purchases)state.purchases=[];
+  state.purchases.push({id:'pur_'+Date.now(),person:name,items:purchasedItems,notes,ts});
+  state.purchases.sort((a,b)=>b.ts-a.ts);
+  save();closeSheet();renderStats();
+  if(activeTab==='buy')render();
+  toast('✅ 购买记录已保存 — '+name);
+}
+
+function deletePurchase(id){
+  if(!confirm('⚠️ 确定删除这条购买记录？\nDelete this purchase record?'))return;
+  state.purchases=state.purchases.filter(p=>p.id!==id);
+  save();render();toast('🗑️ 已删除 Deleted');
+}
+
+function setPurchaseFilter(person){purchaseFilterPerson=person;render();}
+
+function renderPurchases(){
+  const container=document.getElementById('list');
+  if(!state.purchases)state.purchases=[];
+  const persons=[...new Set(state.purchases.map(p=>p.person))];
+
+  let html=`<div style="padding:12px 16px 0">
+    <button class="mbtn pp" style="width:100%;margin-bottom:8px" onclick="openLogPurchase()">🛒 记录新购买 New Purchase Record</button>
+  </div>`;
+
+  if(!state.purchases.length){
+    html+='<div class="empty">暂无购买记录<br>No purchase records yet<br><br>点击上方按钮开始记录 👆</div>';
+    container.innerHTML=html;return;
+  }
+
+  // Person filter chips
+  html+=`<div class="purchase-filter-row">
+    <button class="pf-chip ${purchaseFilterPerson==='all'?'on':''}" onclick="setPurchaseFilter('all')">👥 全部 All (${state.purchases.length})</button>
+    ${persons.map(p=>{
+      const cnt=state.purchases.filter(x=>x.person===p).length;
+      const safe=p.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return `<button class="pf-chip ${purchaseFilterPerson===p?'on':''}" onclick="setPurchaseFilter('${safe}')">👤 ${p} (${cnt})</button>`;
+    }).join('')}
+  </div>`;
+
+  const filtered=purchaseFilterPerson==='all'?state.purchases:state.purchases.filter(p=>p.person===purchaseFilterPerson);
+  if(!filtered.length){
+    html+=`<div class="empty">没有找到 "${purchaseFilterPerson}" 的购买记录</div>`;
+    container.innerHTML=html;return;
+  }
+
+  html+='<div style="padding:4px 16px 8px">';
+  let lastDate='';
+  filtered.forEach(rec=>{
+    const d=new Date(rec.ts);
+    const ds=d.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'});
+    const dow=d.toLocaleDateString('zh-CN',{weekday:'short'});
+    if(ds!==lastDate){html+=`<div class="sec-label">📅 ${ds} ${dow}</div>`;lastDate=ds;}
+
+    const initial=rec.person.charAt(0).toUpperCase();
+    const timeStr=d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+    const totalItems=rec.items.reduce((s,i)=>s+i.qty,0);
+    const recId=rec.id.replace(/'/g,"\\'");
+
+    const itemsHtml=rec.items.map(it=>`
+      <div class="purchase-item-row">
+        <span class="purchase-item-icon">${it.icon}</span>
+        <span class="purchase-item-name">${it.name}</span>
+        <span class="purchase-item-qty">× ${it.qty} <span style="font-weight:400;font-size:11px;opacity:0.75">${it.unit}</span></span>
+      </div>`).join('');
+
+    html+=`<div class="purchase-card">
+      <div class="purchase-card-header">
+        <div class="purchase-person">
+          <div class="person-avatar">${initial}</div>
+          <div>
+            <div class="person-name">${rec.person}</div>
+            <div class="purchase-time">${timeStr} · ${rec.items.length} 种 ${totalItems} 件</div>
+          </div>
+        </div>
+        <button class="purchase-delete-btn" onclick="deletePurchase('${recId}')" title="删除">🗑️</button>
+      </div>
+      <div class="purchase-items-list">${itemsHtml}</div>
+      ${rec.notes?`<div class="purchase-notes">📝 ${rec.notes}</div>`:''}
+    </div>`;
+  });
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+// ─────────── CORE SYNC ───────────
+
+async function load(isSilent=false){
+  if(isSilent&&(editingQtyId!==null||document.getElementById('overlay').style.display!=='none'))return;
+  if(!isSilent){syncStatusEl.textContent='🔄 加载中...';syncStatusEl.className='sync-status';}
+  try{
+    const res=await fetch(`/api/sync?t=${Date.now()}`,{cache:'no-store'});
+    const d=await res.json();
+    if(d&&d.items&&d.items.length>0){
+      state.items=d.items.map(ci=>{const df=DEFAULT_ITEMS.find(x=>x.id===ci.id);return df?{...ci,name:df.name,sub:df.sub,unit:df.unit}:ci;});
+      state.cats=d.cats||state.cats;
+      state.history=d.history||[];
+      state.purchases=d.purchases||[];
+      state.collapsed=d.collapsed||{};
+    }
+    syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
+  }catch(e){
+    if(!isSilent){syncStatusEl.textContent='🔴 离线 Offline';syncStatusEl.className='sync-status offline';}
+  }
+  renderStats();render();
+}
+
+async function adj(id,d){
+  const li=state.items.find(i=>i.id===id);if(!li)return;
+  li.qty=Math.max(0,li.qty+d);renderStats();render();
+  syncStatusEl.textContent='⏳ 保存中...';syncStatusEl.className='sync-status';
+  try{
+    const res=await fetch(`/api/sync?t=${Date.now()}`,{cache:'no-store'});
+    const sd=await res.json();
+    if(sd&&sd.items){
+      const si=sd.items.find(i=>i.id===id);
+      if(si){
+        const nq=Math.max(0,si.qty+d);const delta=nq-si.qty;si.qty=nq;
+        if(!sd.history)sd.history=[];
+        sd.history.push({id,name:li.name,delta,newQty:nq,unit:li.unit,ts:Date.now()});
+        await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sd)});
+        state.items=sd.items;state.history=sd.history;
       }
     }
-    syncStatusEl.textContent = '🟢 已同步 Synced';
-    syncStatusEl.className = 'sync-status synced';
-  } catch(e) {
-    syncStatusEl.textContent = '🔴 同步失败 Sync Failed';
-    syncStatusEl.className = 'sync-status offline';
-  }
-  renderStats(); render();
+    syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
+  }catch(e){syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';}
+  renderStats();render();
 }
 
-// 3. 聪明的直接输入修改函数 (比如盘点直接输入数值)
 async function commitQty(id){
-  const e = document.getElementById('qi_'+id); if(!e) return;
-  const nq = Math.max(0, parseInt(e.value) || 0);
-  editingQtyId = null; // 退出编辑模式
-  
-  const localIt = state.items.find(i => i.id === id);
-  if(localIt) localIt.qty = nq;
-  renderStats(); render();
-  
-  syncStatusEl.textContent = '⏳ 保存中...';
-  syncStatusEl.className = 'sync-status';
-  
-  try {
-    const res = await fetch(`/api/sync?t=${Date.now()}`, { cache: 'no-store' });
-    const serverData = await res.json();
-    
-    if(serverData && serverData.items) {
-      const serverIt = serverData.items.find(i => i.id === id);
-      if(serverIt && serverIt.qty !== nq) {
-        // 盘点属于绝对值覆盖
-        const delta = nq - serverIt.qty;
-        serverIt.qty = nq;
-        
-        if(!serverData.history) serverData.history = [];
-        serverData.history.push({id, name: serverIt.name || localIt.name, delta, newQty: nq, unit: serverIt.unit, ts: Date.now()});
-        
-        await fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(serverData)
-        });
-        
-        state.items = serverData.items;
-        state.history = serverData.history;
+  const e=document.getElementById('qi_'+id);if(!e)return;
+  const nq=Math.max(0,parseInt(e.value)||0);editingQtyId=null;
+  const li=state.items.find(i=>i.id===id);if(li)li.qty=nq;
+  renderStats();render();
+  syncStatusEl.textContent='⏳ 保存中...';syncStatusEl.className='sync-status';
+  try{
+    const res=await fetch(`/api/sync?t=${Date.now()}`,{cache:'no-store'});
+    const sd=await res.json();
+    if(sd&&sd.items){
+      const si=sd.items.find(i=>i.id===id);
+      if(si&&si.qty!==nq){
+        const delta=nq-si.qty;si.qty=nq;
+        if(!sd.history)sd.history=[];
+        sd.history.push({id,name:si.name||(li&&li.name)||'',delta,newQty:nq,unit:si.unit,ts:Date.now()});
+        await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sd)});
+        state.items=sd.items;state.history=sd.history;
       }
     }
-    syncStatusEl.textContent = '🟢 已同步 Synced';
-    syncStatusEl.className = 'sync-status synced';
-  } catch(err) {
-    syncStatusEl.textContent = '🔴 同步失败 Sync Failed';
-    syncStatusEl.className = 'sync-status offline';
-  }
-  renderStats(); render();
+    syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
+  }catch(err){syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';}
+  renderStats();render();
 }
 
-// 4. 通用保存函数：仅用于添加新物品/删除物品/分类折叠等结构性更改
 async function save(){
-  syncStatusEl.textContent = '⏳ 保存中 Saving...';
-  syncStatusEl.className = 'sync-status';
+  syncStatusEl.textContent='⏳ 保存中...';syncStatusEl.className='sync-status';
   try{
-    await fetch('/api/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cats: state.cats, items: state.items, history: state.history.slice(-300), collapsed: state.collapsed })
-    });
-    syncStatusEl.textContent = '🟢 已同步 Synced';
-    syncStatusEl.className = 'sync-status synced';
-  }catch(e){
-    syncStatusEl.textContent = '🔴 同步失败 Sync Failed';
-    syncStatusEl.className = 'sync-status offline';
-  }
+    await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({cats:state.cats,items:state.items,history:state.history.slice(-300),purchases:(state.purchases||[]).slice(-500),collapsed:state.collapsed})});
+    syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
+  }catch(e){syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';}
 }
+
+// ─────────── RENDER ───────────
 
 function renderStats(){
   let low=0;state.items.forEach(i=>{if(i.qty<=i.low)low++;});
+  const buys=(state.purchases||[]).length;
   document.getElementById('stats').innerHTML=`
     <div class="stat"><div class="stat-v">${state.items.length}</div><div class="stat-l">种类 Types</div></div>
-    <div class="stat"><div class="stat-v" style="color:${low>0?'var(--color-text-danger)':'var(--color-text-success)'}">${low}</div><div class="stat-l">低库存 Low</div></div>`;
+    <div class="stat"><div class="stat-v" style="color:${low>0?'var(--color-text-danger)':'var(--color-text-success)'}">${low}</div><div class="stat-l">低库存 Low</div></div>
+    <div class="stat"><div class="stat-v" style="color:var(--color-text-purchase)">${buys}</div><div class="stat-l">购买记录 Buys</div></div>`;
 }
 
 function render(){
   if(activeTab==='hist'){renderHist();return;}
+  if(activeTab==='buy'){renderPurchases();return;}
   const q=document.getElementById('sq').value.toLowerCase();
   let html='';
   state.cats.forEach(cat=>{
@@ -416,22 +515,18 @@ function render(){
     });
     if(!items.length&&q)return;
     const col=state.collapsed[cat.id];
-    html+=`<div class="cg"><div class="ch" onclick="toggleCat('${cat.id}')">
-      ${cat.name}
-      <span class="cc">${items.length} 项 Items</span>
-    </div>`;
+    html+=`<div class="cg"><div class="ch" onclick="toggleCat('${cat.id}')">${cat.name}<span class="cc">${items.length} 项</span></div>`;
     if(!col){
       items.forEach(it=>{
-        const isLow=it.qty<=it.low;
-        const isEdit=editingQtyId===it.id;
+        const isLow=it.qty<=it.low,isEdit=editingQtyId===it.id;
         html+=`<div class="card">
           <div class="card-icon" style="background:${cat.color}">${it.icon}</div>
           <div class="card-info">
             <div class="card-name">${it.name}</div>
             <div class="card-sub">
-              <span class="unit-tag" onclick="openEditUnit('${it.id}')" title="点击修改单位 Click to edit unit">${getUnitLabel(it.unit)}</span>
+              <span class="unit-tag" onclick="openEditUnit('${it.id}')">${getUnitLabel(it.unit)}</span>
               ${it.sub?`<span style="color:var(--color-text-tertiary)">${it.sub}</span>`:''}
-              ${isLow?`<span class="low-badge">⚠️低库存 Low Stock</span>`:''}
+              ${isLow?'<span class="low-badge">⚠️ Low Stock</span>':''}
             </div>
           </div>
           <div class="card-ctrl">
@@ -440,7 +535,8 @@ function render(){
               ?`<input class="qinput" type="number" value="${it.qty}" min="0" id="qi_${it.id}" onblur="commitQty('${it.id}')" onkeydown="if(event.key==='Enter')commitQty('${it.id}')" autofocus>`
               :`<span class="qbadge${it.qty===0?' zero':''}" onclick="startQty('${it.id}')">${it.qty}</span>`}
             <button class="cb add" onclick="adj('${it.id}',1)">+</button>
-            <button class="edit-btn" onclick="openEditItem('${it.id}')" title="编辑物品 Edit Item">⋮</button>
+            <button class="buy-btn" onclick="openLogPurchase('${it.id}')" title="记录购买 Log Purchase">🛒</button>
+            <button class="edit-btn" onclick="openEditItem('${it.id}')">⋮</button>
           </div>
         </div>`;
       });
@@ -448,103 +544,86 @@ function render(){
     }
     html+='</div>';
   });
-  if(!html) html='<div class="empty">没有找到物品 No items found</div>';
+  if(!html)html='<div class="empty">没有找到物品 No items found</div>';
   document.getElementById('list').innerHTML=html;
 }
 
 function renderHist(){
   const container=document.getElementById('list');
   const hist=[...state.history].reverse().slice(0,80);
-  if(!hist.length){container.innerHTML='<div class="empty">暂无操作记录 No history yet</div>';return;}
-  let html='<div style="padding:0 16px 8px">';
-  let lastDate='';
+  if(!hist.length){container.innerHTML='<div class="empty">暂无记录 No history yet</div>';return;}
+  let html='<div style="padding:0 16px 8px">';let lastDate='';
   hist.forEach(h=>{
-    const d=new Date(h.ts);
-    const ds=d.toLocaleDateString('zh-CN');
+    const d=new Date(h.ts);const ds=d.toLocaleDateString('zh-CN');
     if(ds!==lastDate){html+=`<div class="sec-label">${ds}</div>`;lastDate=ds;}
-    const sign=h.delta>0?'+':'';
-    const col=h.delta>0?'var(--color-text-success)':'var(--color-text-danger)';
+    const sign=h.delta>0?'+':'',col=h.delta>0?'var(--color-text-success)':'var(--color-text-danger)';
     const time=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
-    const unitLabel = getUnitLabel(h.unit);
     html+=`<div class="hist-row">
       <div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--color-text-primary)">${h.name}</div><div style="font-size:12px;color:var(--color-text-tertiary)">${time}</div></div>
       <div style="font-size:16px;font-weight:700;color:${col};margin-right:8px">${sign}${h.delta}</div>
-      <div style="font-size:13px;font-weight:500;color:var(--color-text-secondary);min-width:40px;text-align:right">${h.newQty}<br><span style="font-size:10px;color:var(--color-text-tertiary)">${unitLabel}</span></div>
+      <div style="font-size:13px;font-weight:500;color:var(--color-text-secondary);min-width:40px;text-align:right">${h.newQty}<br><span style="font-size:10px;color:var(--color-text-tertiary)">${getUnitLabel(h.unit)}</span></div>
     </div>`;
   });
-  html+='</div>';
-  container.innerHTML=html;
+  html+='</div>';container.innerHTML=html;
 }
 
 function startQty(id){editingQtyId=id;render();setTimeout(()=>{const e=document.getElementById('qi_'+id);if(e){e.focus();e.select();}},50);}
-
 function toggleCat(id){state.collapsed[id]=!state.collapsed[id];save();render();}
 function toggleLow(){showLow=!showLow;document.getElementById('low-btn').className='fbtn'+(showLow?' on':'');render();}
 function switchTab(t){
   activeTab=t;
-  ['inv','hist','add','share'].forEach(x=>{const b=document.getElementById('t-'+x);if(b)b.className='tab'+(x===t?' on':'');});
-  document.getElementById('t-add').className='tab';
+  ['inv','hist','buy','add'].forEach(x=>{
+    const b=document.getElementById('t-'+x);if(!b)return;
+    b.className='tab'+(x===t?' on':'');
+    if(x==='buy'&&x===t)b.className='tab on purchase-tab';
+  });
   render();
 }
 
 function openEditUnit(id){
   const it=state.items.find(i=>i.id===id);if(!it)return;
-  const optionsHtml = UNITS.map(u => `<option value="${u.v}" ${u.v === it.unit ? 'selected' : ''}>${u.l}</option>`).join('');
-
+  const opts=UNITS.map(u=>`<option value="${u.v}" ${u.v===it.unit?'selected':''}>${u.l}</option>`).join('');
   document.getElementById('sheet').innerHTML=`
     <div class="sheet-title">✏️ 更换单位 Edit Unit</div>
     <div class="sheet-sub">${it.name}</div>
-    <div class="field"><label>选择单位 Select Unit</label>
-      <select id="eu-val">
-        ${optionsHtml}
-      </select>
-    </div>
+    <div class="field"><label>选择单位</label><select id="eu-val">${opts}</select></div>
     <div class="mbtns">
-      <button class="mbtn p" onclick="saveUnit('${id}')">✅ 保存 Save</button>
-      <button class="mbtn s" onclick="closeSheet()">取消 Cancel</button>
+      <button class="mbtn p" onclick="saveUnit('${id}')">✅ 保存</button>
+      <button class="mbtn s" onclick="closeSheet()">取消</button>
     </div>`;
   document.getElementById('overlay').style.display='flex';
 }
-function saveUnit(id){
-  const it=state.items.find(i=>i.id===id);if(!it)return;
-  it.unit=document.getElementById('eu-val').value;
-  save();closeSheet();render();toast('✅ 单位已更新 Unit Updated');
-}
+function saveUnit(id){const it=state.items.find(i=>i.id===id);if(!it)return;it.unit=document.getElementById('eu-val').value;save();closeSheet();render();toast('✅ 单位已更新');}
 
 function openEditItem(id){
   const it=state.items.find(i=>i.id===id);if(!it)return;
-  const unitOptions = UNITS.map(u => `<option value="${u.v}" ${u.v === it.unit ? 'selected' : ''}>${u.l}</option>`).join('');
-  
+  const uopts=UNITS.map(u=>`<option value="${u.v}" ${u.v===it.unit?'selected':''}>${u.l}</option>`).join('');
   document.getElementById('sheet').innerHTML=`
     <div class="sheet-title">✏️ 编辑物品 Edit Item</div>
-    <div class="sheet-sub">修改物品信息 Edit item information</div>
-    <div class="field"><label>名称 Name (双语)</label><input id="ei-name" value="${it.name}"></div>
+    <div class="field"><label>名称 Name</label><input id="ei-name" value="${it.name}"></div>
     <div class="frow">
-      <div class="field"><label>单位 Unit *</label>
-        <select id="ei-unit">${unitOptions}</select>
-      </div>
-      <div class="field"><label>备注 Sub (可选)</label><input id="ei-sub" value="${it.sub}"></div>
+      <div class="field"><label>单位 Unit</label><select id="ei-unit">${uopts}</select></div>
+      <div class="field"><label>备注 Sub</label><input id="ei-sub" value="${it.sub}"></div>
     </div>
     <div class="frow">
       <div class="field"><label>数量 Qty</label><input id="ei-qty" type="number" value="${it.qty}" min="0"></div>
-      <div class="field"><label>低库存警戒 Low</label><input id="ei-low" type="number" value="${it.low}" min="0"></div>
+      <div class="field"><label>低库存 Low</label><input id="ei-low" type="number" value="${it.low}" min="0"></div>
     </div>
-    <div class="field"><label>图标 Icon (点击更换)</label>
-      <div class="icon-grid" id="ig">${ICONS.map(ic=>`<button class="ig-btn${ic===it.icon?' sel':''}" onclick="selIcon(this,'${ic}')">${ic}</button>`).join('')}</div>
+    <div class="field"><label>图标 Icon</label>
+      <div class="icon-grid">${ICONS.map(ic=>`<button class="ig-btn${ic===it.icon?' sel':''}" onclick="selIcon(this,'${ic}')">${ic}</button>`).join('')}</div>
     </div>
     <div class="field"><label>分类 Category</label>
       <select id="ei-cat">${state.cats.map(c=>`<option value="${c.id}"${c.id===it.cat?' selected':''}>${c.name}</option>`).join('')}</select>
     </div>
     <div class="mbtns">
-      <button class="mbtn p" onclick="saveEditItem('${id}')">✅ 保存 Save</button>
-      <button class="mbtn d" onclick="deleteItem('${id}')">🗑️ 删除 Delete</button>
-      <button class="mbtn s" onclick="closeSheet()">取消 Cancel</button>
+      <button class="mbtn p" onclick="saveEditItem('${id}')">✅ 保存</button>
+      <button class="mbtn d" onclick="deleteItem('${id}')">🗑️ 删除</button>
+      <button class="mbtn s" onclick="closeSheet()">取消</button>
     </div>`;
   document.getElementById('overlay').style.display='flex';
 }
 let selIconVal='';
 function selIcon(btn,ic){selIconVal=ic;document.querySelectorAll('.ig-btn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
-
 function saveEditItem(id){
   const it=state.items.find(i=>i.id===id);if(!it)return;
   it.name=document.getElementById('ei-name').value.trim()||it.name;
@@ -553,135 +632,100 @@ function saveEditItem(id){
   it.qty=Math.max(0,parseInt(document.getElementById('ei-qty').value)||0);
   it.low=Math.max(0,parseInt(document.getElementById('ei-low').value)||0);
   it.cat=document.getElementById('ei-cat').value;
-  if(selIconVal)it.icon=selIconVal;
-  selIconVal='';
-  save();closeSheet();renderStats();render();toast('✅ 已保存 Saved');
+  if(selIconVal)it.icon=selIconVal;selIconVal='';
+  save();closeSheet();renderStats();render();toast('✅ 已保存');
 }
 function deleteItem(id){
-  if(!confirm('⚠️ 确定删除这个物品吗？此操作不可逆。 Are you sure to delete? This is irreversible.'))return;
+  if(!confirm('⚠️ 确定删除？此操作不可逆。'))return;
   state.items=state.items.filter(i=>i.id!==id);
-  save();closeSheet();renderStats();render();toast('🗑️ 已删除 Deleted');
+  save();closeSheet();renderStats();render();toast('🗑️ 已删除');
 }
 
 function openAddItem(catId){
   selIconVal='🏷️';
-  const unitOptions = UNITS.map(u => `<option value="${u.v}">${u.l}</option>`).join('');
-
+  const uopts=UNITS.map(u=>`<option value="${u.v}">${u.l}</option>`).join('');
   document.getElementById('sheet').innerHTML=`
     <div class="sheet-title">➕ 新增物品 Add Item</div>
-    <div class="sheet-sub">添加新物品到仓库 Add new item to inventory</div>
-    <div class="field"><label>名称 Name * (请用中英双语)</label><input id="ai-name" placeholder="例: 安全眼镜 Safety Glasses"></div>
+    <div class="field"><label>名称 Name * (中英双语)</label><input id="ai-name" placeholder="例: 安全眼镜 Safety Glasses"></div>
     <div class="frow">
       <div class="field"><label>初始数量 Qty</label><input id="ai-qty" type="number" value="0" min="0"></div>
-      <div class="field"><label>单位 Unit * (下拉选择)</label>
-        <select id="ai-unit">${unitOptions}</select>
-      </div>
+      <div class="field"><label>单位 Unit</label><select id="ai-unit">${uopts}</select></div>
     </div>
     <div class="frow">
-      <div class="field"><label>备注/规格 Sub (可选)</label><input id="ai-sub" placeholder="尺寸、用途 Size, function..."></div>
-      <div class="field"><label>低库存警戒 Low Alert</label><input id="ai-low" type="number" value="2" min="0"></div>
+      <div class="field"><label>备注 Sub</label><input id="ai-sub" placeholder="尺寸、规格..."></div>
+      <div class="field"><label>低库存 Low</label><input id="ai-low" type="number" value="2" min="0"></div>
     </div>
-    <div class="field"><label>选择图标 Icon</label>
+    <div class="field"><label>图标 Icon</label>
       <div class="icon-grid">${ICONS.map(ic=>`<button class="ig-btn${ic==='🏷️'?' sel':''}" onclick="selIcon(this,'${ic}')">${ic}</button>`).join('')}</div>
     </div>
     <div class="field"><label>分类 Category</label>
       <select id="ai-cat">${state.cats.map(c=>`<option value="${c.id}"${c.id===catId?' selected':''}>${c.name}</option>`).join('')}</select>
     </div>
     <div class="mbtns">
-      <button class="mbtn p" onclick="doAddItem()">✅ 添加 Add</button>
-      <button class="mbtn s" onclick="closeSheet()">取消 Cancel</button>
+      <button class="mbtn p" onclick="doAddItem()">✅ 添加</button>
+      <button class="mbtn s" onclick="closeSheet()">取消</button>
     </div>`;
   document.getElementById('overlay').style.display='flex';
 }
 function doAddItem(){
-  const name=document.getElementById('ai-name').value.trim();
-  if(!name){toast('❌ 请输入名称 Please enter a name');return;}
+  const name=document.getElementById('ai-name').value.trim();if(!name){toast('❌ 请输入名称');return;}
   const id='item_'+Date.now();
-  state.items.push({
-    id,cat:document.getElementById('ai-cat').value,
-    name,sub:document.getElementById('ai-sub').value.trim(),
-    unit:document.getElementById('ai-unit').value,
-    qty:Math.max(0,parseInt(document.getElementById('ai-qty').value)||0),
-    low:Math.max(0,parseInt(document.getElementById('ai-low').value)||2),
-    icon:selIconVal||'🏷️'
-  });
-  selIconVal='';save();closeSheet();renderStats();render();toast('✅ 已添加 Added');
+  state.items.push({id,cat:document.getElementById('ai-cat').value,name,sub:document.getElementById('ai-sub').value.trim(),unit:document.getElementById('ai-unit').value,qty:Math.max(0,parseInt(document.getElementById('ai-qty').value)||0),low:Math.max(0,parseInt(document.getElementById('ai-low').value)||2),icon:selIconVal||'🏷️'});
+  selIconVal='';save();closeSheet();renderStats();render();toast('✅ 已添加');
 }
 
 function openExport(){
-  const d=JSON.stringify({version:2,ts:Date.now(),cats:state.cats,items:state.items,history:state.history.slice(-50)});
+  const d=JSON.stringify({version:2,ts:Date.now(),cats:state.cats,items:state.items,history:state.history.slice(-50),purchases:(state.purchases||[]).slice(-200)});
   document.getElementById('sheet').innerHTML=`
     <div class="sheet-title">📤 分享数据 Share</div>
-    <div class="sheet-sub">复制代码发给同事，他们导入后看到相同数据 Copy code to share with colleagues</div>
+    <div class="sheet-sub">复制后发给同事导入 Copy & share with colleagues</div>
     <div class="field"><textarea readonly id="ex-ta">${d}</textarea></div>
     <div class="mbtns">
       <button class="mbtn p" onclick="doCopy()">📑 复制 Copy</button>
-      <button class="mbtn s" onclick="closeSheet()">关闭 Close</button>
+      <button class="mbtn s" onclick="closeSheet()">关闭</button>
     </div>`;
   document.getElementById('overlay').style.display='flex';
 }
-function doCopy(){const t=document.getElementById('ex-ta');t.select();try{document.execCommand('copy');toast('✅ 已复制 Copied');}catch(e){toast('请手动复制 Please copy manually');}}
+function doCopy(){const t=document.getElementById('ex-ta');t.select();try{document.execCommand('copy');toast('✅ 已复制');}catch(e){toast('请手动复制');}}
 
 function openImport(){
   document.getElementById('sheet').innerHTML=`
     <div class="sheet-title">📥 导入数据 Import</div>
-    <div class="sheet-sub">粘贴同事发来的代码，点击导入 Paste the code here to import</div>
-    <div class="field"><textarea id="im-ta" placeholder="粘贴数据代码…Paste data here…"></textarea></div>
+    <div class="sheet-sub">粘贴同事发来的数据代码</div>
+    <div class="field"><textarea id="im-ta" placeholder="粘贴数据代码…"></textarea></div>
     <div class="mbtns">
-      <button class="mbtn p" onclick="doImport()">📥 确认导入 Import</button>
-      <button class="mbtn s" onclick="closeSheet()">取消 Cancel</button>
+      <button class="mbtn p" onclick="doImport()">📥 确认导入</button>
+      <button class="mbtn s" onclick="closeSheet()">取消</button>
     </div>`;
   document.getElementById('overlay').style.display='flex';
 }
 function doImport(){
   try{
     const d=JSON.parse(document.getElementById('im-ta').value.trim());
-    if(d.items){state.items=d.items;}
-    if(d.cats){state.cats=d.cats;}
-    if(d.history){state.history=[...state.history,...d.history].slice(-300);}
-    save();closeSheet();renderStats();render();toast('✅ 导入成功 Import Successful');
-  }catch(e){toast('❌ 数据格式错误，请重新复制 Invalid data format, please copy again');}
+    if(d.items)state.items=d.items;if(d.cats)state.cats=d.cats;
+    if(d.history)state.history=[...state.history,...d.history].slice(-300);
+    if(d.purchases)state.purchases=[...(state.purchases||[]),...d.purchases].slice(-500);
+    save();closeSheet();renderStats();render();toast('✅ 导入成功');
+  }catch(e){toast('❌ 数据格式错误，请重新复制');}
 }
 
 function closeSheet(){document.getElementById('overlay').style.display='none';selIconVal='';}
 function overlayClick(e){if(e.target===document.getElementById('overlay'))closeSheet();}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.className='toast on';setTimeout(()=>t.className='toast',2500);}
 
-// ==========================================
-// 🛡️ VIEW-ONLY 模式核心拦截逻辑 (防呆防篡改)
-// ==========================================
-// 检查网址是否包含 ?mode=boss
-const isViewOnly = new URLSearchParams(window.location.search).get('mode') === 'boss';
-
-if (isViewOnly) {
-  // 1. 给 body 加上 class，触发 CSS 自动隐藏所有编辑按钮
+// ─────────── VIEW-ONLY MODE ───────────
+const isViewOnly=new URLSearchParams(window.location.search).get('mode')==='boss';
+if(isViewOnly){
   document.body.classList.add('view-only');
-  
-  // 2. 暴力拦截所有修改数据的核心函数 (双重保险)
-  const blockEdit = (e) => {
-    if(e && typeof e.stopPropagation === 'function') e.stopPropagation();
-    toast('👁️ 浏览模式 (View Only)：您目前只有查看权限');
-  };
-  
-  // 覆盖原有的核心保存和写入函数
-  window.adj = blockEdit;
-  window.commitQty = blockEdit;
-  window.save = blockEdit;
-  window.doAddItem = blockEdit;
-  window.doImport = blockEdit;
-  window.deleteItem = blockEdit;
-  window.saveEditItem = blockEdit;
-  window.saveUnit = blockEdit;
+  const block=()=>toast('👁️ 浏览模式 View Only — 没有编辑权限');
+  window.adj=block;window.commitQty=block;window.save=block;
+  window.doAddItem=block;window.doImport=block;window.deleteItem=block;
+  window.saveEditItem=block;window.saveUnit=block;
+  window.doLogPurchase=block;window.deletePurchase=block;
 }
 
-// 首次打开页面加载数据
 load();
-
-// ⭐️ 防呆雷达：每5秒安静轮询一次服务器数据，防止同事修改后本地未更新
-setInterval(() => {
-  load(true); 
-}, 5000);
-
+setInterval(()=>load(true),5000);
 </script>
 </body>
 </html>
