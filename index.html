@@ -98,6 +98,20 @@ body{font-family:var(--font-sans);background:#f8fafc}
 .icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px}
 .ig-btn{border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:22px;padding:8px;cursor:pointer;text-align:center}
 .ig-btn.sel{border-color:var(--color-text-info);background:var(--color-background-info)}
+
+/* ===== View-Only Mode Styles (老板专属免打扰模式) ===== */
+body.view-only .cb, 
+body.view-only .edit-btn, 
+body.view-only .add-item-btn, 
+body.view-only #t-add,
+body.view-only .hbtn { 
+  display: none !important; 
+}
+body.view-only .qbadge, 
+body.view-only .unit-tag, 
+body.view-only .ch { 
+  pointer-events: none !important; 
+}
 </style>
 </head>
 <body>
@@ -632,6 +646,33 @@ function doImport(){
 function closeSheet(){document.getElementById('overlay').style.display='none';selIconVal='';}
 function overlayClick(e){if(e.target===document.getElementById('overlay'))closeSheet();}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.className='toast on';setTimeout(()=>t.className='toast',2500);}
+
+// ==========================================
+// 🛡️ VIEW-ONLY 模式核心拦截逻辑 (防呆防篡改)
+// ==========================================
+// 检查网址是否包含 ?mode=boss
+const isViewOnly = new URLSearchParams(window.location.search).get('mode') === 'boss';
+
+if (isViewOnly) {
+  // 1. 给 body 加上 class，触发 CSS 自动隐藏所有编辑按钮
+  document.body.classList.add('view-only');
+  
+  // 2. 暴力拦截所有修改数据的核心函数 (双重保险)
+  const blockEdit = (e) => {
+    if(e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    toast('👁️ 浏览模式 (View Only)：您目前只有查看权限');
+  };
+  
+  // 覆盖原有的核心保存和写入函数
+  window.adj = blockEdit;
+  window.commitQty = blockEdit;
+  window.save = blockEdit;
+  window.doAddItem = blockEdit;
+  window.doImport = blockEdit;
+  window.deleteItem = blockEdit;
+  window.saveEditItem = blockEdit;
+  window.saveUnit = blockEdit;
+}
 
 // 首次打开页面加载数据
 load();
