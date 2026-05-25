@@ -674,19 +674,95 @@ function doAddItem(){
   selIconVal='';save();closeSheet();renderStats();render();toast('✅ 已添加');
 }
 
+// ==========================================
+// 📊 EXCEL (CSV) 导出功能模块
+// ==========================================
+
 function openExport(){
-  const d=JSON.stringify({version:2,ts:Date.now(),cats:state.cats,items:state.items,history:state.history.slice(-50),purchases:(state.purchases||[]).slice(-200)});
+  const d=JSON.stringify({version:2,ts:Date.now(),cats:state.cats,items:state.items,history:state.history.slice(-50)});
   document.getElementById('sheet').innerHTML=`
-    <div class="sheet-title">📤 分享数据 Share</div>
-    <div class="sheet-sub">复制后发给同事导入 Copy & share with colleagues</div>
-    <div class="field"><textarea readonly id="ex-ta">${d}</textarea></div>
+    <div class="sheet-title">📤 导出报表与分享 Export & Share</div>
+    <div class="sheet-sub">下载 Excel 报表或分享数据代码 Download reports or share data</div>
+    
+    <div class="field">
+      <label>📊 导出 Excel (CSV格式) Export to Excel</label>
+      <div class="frow">
+        <button class="mbtn" style="background:var(--color-text-success);color:#fff;" onclick="exportStockCSV()">📦 当前库存<br>Stock</button>
+        <button class="mbtn" style="background:var(--color-text-info);color:#fff;" onclick="exportHistoryCSV()">📜 操作记录<br>History</button>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:24px">
+      <label>🔗 跨设备同步代码 Sync Code (复制发给同事)</label>
+      <textarea readonly id="ex-ta" style="height:60px">${d}</textarea>
+    </div>
+    
     <div class="mbtns">
-      <button class="mbtn p" onclick="doCopy()">📑 复制 Copy</button>
-      <button class="mbtn s" onclick="closeSheet()">关闭</button>
+      <button class="mbtn p" onclick="doCopy()">📑 复制代码 Copy</button>
+      <button class="mbtn s" onclick="closeSheet()">关闭 Close</button>
     </div>`;
   document.getElementById('overlay').style.display='flex';
 }
-function doCopy(){const t=document.getElementById('ex-ta');t.select();try{document.execCommand('copy');toast('✅ 已复制');}catch(e){toast('请手动复制');}}
+
+function doCopy(){const t=document.getElementById('ex-ta');t.select();try{document.execCommand('copy');toast('✅ 已复制 Copied');}catch(e){toast('请手动复制 Please copy manually');}}
+
+// 导出 1：当前库存清单 (Current Stock)
+function exportStockCSV() {
+  // \uFEFF 是 BOM 头，确保 Excel 打开时中文字符不会乱码 (防呆绝招)
+  let csv = '\uFEFF编号 ID,物品名称 Item Name,类别 Category,规格 Sub,当前数量 Qty,单位 Unit,最低库存 Min Level,状态 Status\n';
+  
+  state.items.forEach(it => {
+    const catName = state.cats.find(c => c.id === it.cat)?.name || it.cat;
+    const unitLabel = getUnitLabel(it.unit);
+    const status = it.qty <= it.low ? '⚠️ Low Stock' : 'Normal';
+    
+    // 处理文本里可能带有的逗号或双引号，防止 CSV 错位
+    const safeName = `"${it.name.replace(/"/g, '""')}"`;
+    const safeSub = `"${(it.sub||'').replace(/"/g, '""')}"`;
+    const safeCat = `"${catName.replace(/"/g, '""')}"`;
+
+    csv += `${it.id},${safeName},${safeCat},${safeSub},${it.qty},${unitLabel},${it.low},${status}\n`;
+  });
+  
+  const dateStr = new Date().toLocaleDateString('zh-CN').replace(/\//g, '-');
+  downloadFile(`Inventory_Stock_Report_${dateStr}.csv`, csv);
+  toast('✅ 库存报表已下载 Downloaded');
+}
+
+// 导出 2：历史操作记录 (History)
+function exportHistoryCSV() {
+  let csv = '\uFEFF日期 Date,时间 Time,物品名称 Item Name,变动数量 Delta,变动后数量 New Qty,单位 Unit\n';
+  
+  const hist = [...state.history].reverse(); // 最新的记录排在最上面
+  hist.forEach(h => {
+    const d = new Date(h.ts);
+    const dateStr = d.toLocaleDateString('zh-CN');
+    const timeStr = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    const unitLabel = getUnitLabel(h.unit);
+    const safeName = `"${(h.name||'').replace(/"/g, '""')}"`;
+    const sign = h.delta > 0 ? '+' : ''; // 正数加上 + 号更直观
+
+    // 用单引号包住 delta 防止 Excel 把 + 号当成公式报错
+    csv += `${dateStr},${timeStr},${safeName},'${sign}${h.delta},${h.newQty},${unitLabel}\n`;
+  });
+  
+  const dateStr = new Date().toLocaleDateString('zh-CN').replace(/\//g, '-');
+  downloadFile(`Inventory_History_Report_${dateStr}.csv`, csv);
+  toast('✅ 记录报表已下载 Downloaded');
+}
+
+// 核心下载引擎
+function downloadFile(filename, content) {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
 
 function openImport(){
   document.getElementById('sheet').innerHTML=`
