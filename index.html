@@ -101,9 +101,17 @@ body{font-family:var(--font-sans);background:#f8fafc}
 .low-badge{font-size:10px;font-weight:600;background:var(--color-background-danger);color:var(--color-text-danger);border-radius:4px;padding:2px 6px}
 .hist-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
 .sec-label{font-size:11px;font-weight:700;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.5px;padding:12px 0 4px}
-.icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px}
-.ig-btn{border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:22px;padding:8px;cursor:pointer;text-align:center}
+.icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px;max-height:240px;overflow-y:auto;padding:4px;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)}
+.ig-btn{border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);font-size:22px;padding:8px;cursor:pointer;text-align:center}
 .ig-btn.sel{border-color:var(--color-text-info);background:var(--color-background-info)}
+.icon-add-row{display:flex;gap:6px;margin-bottom:8px}
+.icon-add-row input{flex:1;border:1.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 10px;font-size:18px;text-align:center;background:var(--color-background-primary);color:var(--color-text-primary)}
+.icon-add-row button{padding:8px 14px;border:none;border-radius:var(--border-radius-md);background:var(--color-text-info);color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.icon-add-row button.clear{background:var(--color-background-danger);color:var(--color-text-danger)}
+.ig-btn-wrap{position:relative}
+.ig-del{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:var(--color-text-danger);color:#fff;border:none;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1;padding:0}
+.ig-btn-wrap:hover .ig-del{display:flex}
+.icon-help{font-size:10px;color:var(--color-text-tertiary);margin-top:4px;text-align:center}
 
 /* ===== Purchase Records Styles ===== */
 .purchase-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-purchase);border-radius:var(--border-radius-lg);padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(147,51,234,0.06)}
@@ -157,8 +165,8 @@ body.view-only .ch { pointer-events:none!important; }
       <div class="sync-status" id="sync-status">🔄 加载 Loading...</div>
     </div>
     <div class="hbtns">
-      <button class="hbtn" onclick="openImport()">📥 导入 Import</button>
-      <button class="hbtn" onclick="openExport()">📤 分享 Share</button>
+      <button class="hbtn" onclick="openImport()">📥 导入</button>
+      <button class="hbtn" onclick="openExport()">📤 分享</button>
     </div>
   </div>
   <div class="search-row">
@@ -251,16 +259,25 @@ const DEFAULT_ITEMS=[
   {id:'flag_red',cat:'materials',name:'红旗 Flag Red',sub:'',unit:'pcs',qty:24,low:5,icon:'🚩'},
   {id:'flag_green',cat:'materials',name:'绿旗 Flag Green',sub:'',unit:'pcs',qty:2,low:3,icon:'🚩'},
 ];
-const ICONS=['🧴','🫧','🧹','🧺','🌸','🖤','🤍','💙','❤️','🪣','🧯','⛑️','🧥','🥾','🦺','🧤','🔒','⚙️','📏','🔋','🔑','🚧','📦','🛍️','🚩','⚠️','📯','🥽','🔧','🪛','📋','🏷️','💊','🧲','🪝','📐'];
+// Default built-in icons + user can add custom ones (stored in state.customIcons)
+const DEFAULT_ICONS=['🧴','🫧','🧹','🧺','🌸','🖤','🤍','💙','❤️','🪣','🧯','⛑️','🧥','🥾','🦺','🧤','🔒','⚙️','📏','🔋','🔑','🚧','📦','🛍️','🚩','⚠️','📯','🥽','🔧','🪛','📋','🏷️','💊','🧲','🪝','📐','🧰','🔨','🪚','✂️','🧽','🪥','🧴','🚿','💧','🔩','🪙','💡'];
 
-let state={cats:[...DEFAULT_CATS],items:[...DEFAULT_ITEMS.map(i=>({...i}))],history:[],purchases:[],collapsed:{}};
+let state={cats:[...DEFAULT_CATS],items:[...DEFAULT_ITEMS.map(i=>({...i}))],history:[],purchases:[],collapsed:{},customIcons:[]};
 let activeTab='inv',showLow=false,editingQtyId=null,purchaseFilterPerson='all';
 const syncStatusEl=document.getElementById('sync-status');
+
+// Combined icons list (defaults + custom, dedup)
+function getAllIcons(){
+  const custom=state.customIcons||[];
+  const seen=new Set();
+  const out=[];
+  [...custom,...DEFAULT_ICONS].forEach(ic=>{if(!seen.has(ic)){seen.add(ic);out.push(ic);}});
+  return out;
+}
 
 // ─────────── PURCHASE FUNCTIONS ───────────
 
 function openLogPurchase(preItemId){
-  const itemOpts=state.items.map(it=>`<option value="${it.id}" ${it.id===preItemId?'selected':''}>${it.icon} ${it.name}</option>`).join('');
   document.getElementById('sheet').innerHTML=`
     <div class="sheet-title">🛒 记录购买 Log Purchase</div>
     <div class="sheet-sub">记录谁买了什么 · Who bought what</div>
@@ -358,7 +375,6 @@ function renderPurchases(){
     container.innerHTML=html;return;
   }
 
-  // Person filter chips
   html+=`<div class="purchase-filter-row">
     <button class="pf-chip ${purchaseFilterPerson==='all'?'on':''}" onclick="setPurchaseFilter('all')">👥 全部 All (${state.purchases.length})</button>
     ${persons.map(p=>{
@@ -427,6 +443,7 @@ async function load(isSilent=false){
       state.history=d.history||[];
       state.purchases=d.purchases||[];
       state.collapsed=d.collapsed||{};
+      state.customIcons=d.customIcons||[];
     }
     syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
   }catch(e){
@@ -485,7 +502,7 @@ async function save(){
   syncStatusEl.textContent='⏳ 保存中...';syncStatusEl.className='sync-status';
   try{
     await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({cats:state.cats,items:state.items,history:state.history.slice(-300),purchases:(state.purchases||[]).slice(-500),collapsed:state.collapsed})});
+      body:JSON.stringify({cats:state.cats,items:state.items,history:state.history.slice(-300),purchases:(state.purchases||[]).slice(-500),collapsed:state.collapsed,customIcons:state.customIcons||[]})});
     syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
   }catch(e){syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';}
 }
@@ -595,23 +612,90 @@ function openEditUnit(id){
 }
 function saveUnit(id){const it=state.items.find(i=>i.id===id);if(!it)return;it.unit=document.getElementById('eu-val').value;save();closeSheet();render();toast('✅ 单位已更新');}
 
+// ─────────── ICON PICKER (with custom add) ───────────
+
+function buildIconGridHTML(selectedIcon){
+  const icons=getAllIcons();
+  return icons.map(ic=>{
+    const isCustom=(state.customIcons||[]).includes(ic);
+    const sel=ic===selectedIcon?' sel':'';
+    return `<div class="ig-btn-wrap">
+      <button type="button" class="ig-btn${sel}" onclick="selIcon(this,'${ic.replace(/'/g,"\\'")}')">${ic}</button>
+      ${isCustom?`<button type="button" class="ig-del" onclick="removeCustomIcon('${ic.replace(/'/g,"\\'")}',event)" title="删除">×</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+function buildIconPickerHTML(selectedIcon){
+  return `
+    <label>图标 Icon (点击选择，或在下方添加新图标)</label>
+    <div class="icon-add-row">
+      <input id="ic-new" placeholder="✨ 输入或粘贴 Emoji" maxlength="4">
+      <button type="button" onclick="addCustomIcon()">➕ 添加</button>
+    </div>
+    <div class="icon-grid" id="icon-grid">${buildIconGridHTML(selectedIcon)}</div>
+    <div class="icon-help">💡 提示: 长按表情键盘选 Emoji，或复制粘贴任意图标</div>
+  `;
+}
+
+function addCustomIcon(){
+  const inp=document.getElementById('ic-new');
+  if(!inp)return;
+  const val=inp.value.trim();
+  if(!val){toast('❌ 请输入图标');return;}
+  // Basic validation: not too long
+  if(val.length>4){toast('❌ 图标太长，请使用单个Emoji');return;}
+  if(!state.customIcons)state.customIcons=[];
+  if(state.customIcons.includes(val)||DEFAULT_ICONS.includes(val)){
+    toast('⚠️ 此图标已存在');
+    selIconVal=val;
+    const grid=document.getElementById('icon-grid');
+    if(grid)grid.innerHTML=buildIconGridHTML(val);
+    inp.value='';
+    return;
+  }
+  state.customIcons.unshift(val);
+  selIconVal=val;
+  inp.value='';
+  const grid=document.getElementById('icon-grid');
+  if(grid)grid.innerHTML=buildIconGridHTML(val);
+  save();
+  toast('✅ 已添加新图标 '+val);
+}
+
+function removeCustomIcon(ic,ev){
+  if(ev){ev.stopPropagation();ev.preventDefault();}
+  if(!confirm('删除此自定义图标? Delete this custom icon?\n'+ic))return;
+  state.customIcons=(state.customIcons||[]).filter(x=>x!==ic);
+  save();
+  const grid=document.getElementById('icon-grid');
+  if(grid)grid.innerHTML=buildIconGridHTML(selIconVal);
+  toast('🗑️ 已删除');
+}
+
+let selIconVal='';
+function selIcon(btn,ic){
+  selIconVal=ic;
+  document.querySelectorAll('.ig-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
 function openEditItem(id){
   const it=state.items.find(i=>i.id===id);if(!it)return;
+  selIconVal=it.icon;
   const uopts=UNITS.map(u=>`<option value="${u.v}" ${u.v===it.unit?'selected':''}>${u.l}</option>`).join('');
   document.getElementById('sheet').innerHTML=`
     <div class="sheet-title">✏️ 编辑物品 Edit Item</div>
-    <div class="field"><label>名称 Name</label><input id="ei-name" value="${it.name}"></div>
+    <div class="field"><label>名称 Name</label><input id="ei-name" value="${it.name.replace(/"/g,'&quot;')}"></div>
     <div class="frow">
       <div class="field"><label>单位 Unit</label><select id="ei-unit">${uopts}</select></div>
-      <div class="field"><label>备注 Sub</label><input id="ei-sub" value="${it.sub}"></div>
+      <div class="field"><label>备注 Sub</label><input id="ei-sub" value="${(it.sub||'').replace(/"/g,'&quot;')}"></div>
     </div>
     <div class="frow">
       <div class="field"><label>数量 Qty</label><input id="ei-qty" type="number" value="${it.qty}" min="0"></div>
       <div class="field"><label>低库存 Low</label><input id="ei-low" type="number" value="${it.low}" min="0"></div>
     </div>
-    <div class="field"><label>图标 Icon</label>
-      <div class="icon-grid">${ICONS.map(ic=>`<button class="ig-btn${ic===it.icon?' sel':''}" onclick="selIcon(this,'${ic}')">${ic}</button>`).join('')}</div>
-    </div>
+    <div class="field">${buildIconPickerHTML(it.icon)}</div>
     <div class="field"><label>分类 Category</label>
       <select id="ei-cat">${state.cats.map(c=>`<option value="${c.id}"${c.id===it.cat?' selected':''}>${c.name}</option>`).join('')}</select>
     </div>
@@ -622,8 +706,7 @@ function openEditItem(id){
     </div>`;
   document.getElementById('overlay').style.display='flex';
 }
-let selIconVal='';
-function selIcon(btn,ic){selIconVal=ic;document.querySelectorAll('.ig-btn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
+
 function saveEditItem(id){
   const it=state.items.find(i=>i.id===id);if(!it)return;
   it.name=document.getElementById('ei-name').value.trim()||it.name;
@@ -655,9 +738,7 @@ function openAddItem(catId){
       <div class="field"><label>备注 Sub</label><input id="ai-sub" placeholder="尺寸、规格..."></div>
       <div class="field"><label>低库存 Low</label><input id="ai-low" type="number" value="2" min="0"></div>
     </div>
-    <div class="field"><label>图标 Icon</label>
-      <div class="icon-grid">${ICONS.map(ic=>`<button class="ig-btn${ic==='🏷️'?' sel':''}" onclick="selIcon(this,'${ic}')">${ic}</button>`).join('')}</div>
-    </div>
+    <div class="field">${buildIconPickerHTML('🏷️')}</div>
     <div class="field"><label>分类 Category</label>
       <select id="ai-cat">${state.cats.map(c=>`<option value="${c.id}"${c.id===catId?' selected':''}>${c.name}</option>`).join('')}</select>
     </div>
@@ -675,14 +756,14 @@ function doAddItem(){
 }
 
 // ==========================================
-// 📊 EXCEL (CSV) 导出功能模块
+// 📊 EXCEL (CSV) 导出
 // ==========================================
 
 function openExport(){
-  const d=JSON.stringify({version:2,ts:Date.now(),cats:state.cats,items:state.items,history:state.history.slice(-50)});
+  const d=JSON.stringify({version:2,ts:Date.now(),cats:state.cats,items:state.items,history:state.history.slice(-50),customIcons:state.customIcons||[]});
   document.getElementById('sheet').innerHTML=`
     <div class="sheet-title">📤 导出报表与分享 Export & Share</div>
-    <div class="sheet-sub">下载 Excel 报表或分享数据代码 Download reports or share data</div>
+    <div class="sheet-sub">下载 Excel 报表或分享数据代码</div>
     
     <div class="field">
       <label>📊 导出 Excel (CSV格式) Export to Excel</label>
@@ -690,10 +771,14 @@ function openExport(){
         <button class="mbtn" style="background:var(--color-text-success);color:#fff;" onclick="exportStockCSV()">📦 当前库存<br>Stock</button>
         <button class="mbtn" style="background:var(--color-text-info);color:#fff;" onclick="exportHistoryCSV()">📜 操作记录<br>History</button>
       </div>
+      <div class="frow" style="margin-top:8px">
+        <button class="mbtn pp" onclick="exportPurchasesCSV()">🛒 购买记录<br>Purchases</button>
+        <button class="mbtn" style="background:var(--color-text-danger);color:#fff;" onclick="exportLowStockCSV()">⚠️ 低库存<br>Low Stock</button>
+      </div>
     </div>
 
     <div class="field" style="margin-top:24px">
-      <label>🔗 跨设备同步代码 Sync Code (复制发给同事)</label>
+      <label>🔗 跨设备同步代码 Sync Code</label>
       <textarea readonly id="ex-ta" style="height:60px">${d}</textarea>
     </div>
     
@@ -704,54 +789,71 @@ function openExport(){
   document.getElementById('overlay').style.display='flex';
 }
 
-function doCopy(){const t=document.getElementById('ex-ta');t.select();try{document.execCommand('copy');toast('✅ 已复制 Copied');}catch(e){toast('请手动复制 Please copy manually');}}
+function doCopy(){const t=document.getElementById('ex-ta');t.select();try{document.execCommand('copy');toast('✅ 已复制 Copied');}catch(e){toast('请手动复制');}}
 
-// 导出 1：当前库存清单 (Current Stock)
 function exportStockCSV() {
-  // \uFEFF 是 BOM 头，确保 Excel 打开时中文字符不会乱码 (防呆绝招)
   let csv = '\uFEFF编号 ID,物品名称 Item Name,类别 Category,规格 Sub,当前数量 Qty,单位 Unit,最低库存 Min Level,状态 Status\n';
-  
   state.items.forEach(it => {
     const catName = state.cats.find(c => c.id === it.cat)?.name || it.cat;
     const unitLabel = getUnitLabel(it.unit);
     const status = it.qty <= it.low ? '⚠️ Low Stock' : 'Normal';
-    
-    // 处理文本里可能带有的逗号或双引号，防止 CSV 错位
     const safeName = `"${it.name.replace(/"/g, '""')}"`;
     const safeSub = `"${(it.sub||'').replace(/"/g, '""')}"`;
     const safeCat = `"${catName.replace(/"/g, '""')}"`;
-
     csv += `${it.id},${safeName},${safeCat},${safeSub},${it.qty},${unitLabel},${it.low},${status}\n`;
   });
-  
   const dateStr = new Date().toLocaleDateString('zh-CN').replace(/\//g, '-');
-  downloadFile(`Inventory_Stock_Report_${dateStr}.csv`, csv);
-  toast('✅ 库存报表已下载 Downloaded');
+  downloadFile(`Inventory_Stock_${dateStr}.csv`, csv);
+  toast('✅ 库存报表已下载');
 }
 
-// 导出 2：历史操作记录 (History)
 function exportHistoryCSV() {
   let csv = '\uFEFF日期 Date,时间 Time,物品名称 Item Name,变动数量 Delta,变动后数量 New Qty,单位 Unit\n';
-  
-  const hist = [...state.history].reverse(); // 最新的记录排在最上面
+  const hist = [...state.history].reverse();
   hist.forEach(h => {
     const d = new Date(h.ts);
     const dateStr = d.toLocaleDateString('zh-CN');
     const timeStr = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
     const unitLabel = getUnitLabel(h.unit);
     const safeName = `"${(h.name||'').replace(/"/g, '""')}"`;
-    const sign = h.delta > 0 ? '+' : ''; // 正数加上 + 号更直观
-
-    // 用单引号包住 delta 防止 Excel 把 + 号当成公式报错
+    const sign = h.delta > 0 ? '+' : '';
     csv += `${dateStr},${timeStr},${safeName},'${sign}${h.delta},${h.newQty},${unitLabel}\n`;
   });
-  
   const dateStr = new Date().toLocaleDateString('zh-CN').replace(/\//g, '-');
-  downloadFile(`Inventory_History_Report_${dateStr}.csv`, csv);
-  toast('✅ 记录报表已下载 Downloaded');
+  downloadFile(`Inventory_History_${dateStr}.csv`, csv);
+  toast('✅ 记录报表已下载');
 }
 
-// 核心下载引擎
+function exportPurchasesCSV(){
+  let csv='\uFEFF日期 Date,时间 Time,购买者 Buyer,物品 Item,数量 Qty,单位 Unit,备注 Notes\n';
+  (state.purchases||[]).forEach(p=>{
+    const d=new Date(p.ts);
+    const dateStr=d.toLocaleDateString('zh-CN');
+    const timeStr=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+    const safeNotes=`"${(p.notes||'').replace(/"/g,'""')}"`;
+    const safePerson=`"${p.person.replace(/"/g,'""')}"`;
+    p.items.forEach(it=>{
+      const safeName=`"${it.name.replace(/"/g,'""')}"`;
+      csv+=`${dateStr},${timeStr},${safePerson},${safeName},${it.qty},${it.unit},${safeNotes}\n`;
+    });
+  });
+  const dateStr=new Date().toLocaleDateString('zh-CN').replace(/\//g,'-');
+  downloadFile(`Inventory_Purchases_${dateStr}.csv`,csv);
+  toast('✅ 购买记录已下载');
+}
+
+function exportLowStockCSV(){
+  let csv='\uFEFF物品名称 Item,类别 Category,当前数量 Qty,最低库存 Min,差额 Need,单位 Unit\n';
+  state.items.filter(it=>it.qty<=it.low).forEach(it=>{
+    const catName=state.cats.find(c=>c.id===it.cat)?.name||it.cat;
+    const need=Math.max(0,it.low-it.qty);
+    csv+=`"${it.name.replace(/"/g,'""')}","${catName}",${it.qty},${it.low},${need},${getUnitLabel(it.unit)}\n`;
+  });
+  const dateStr=new Date().toLocaleDateString('zh-CN').replace(/\//g,'-');
+  downloadFile(`Inventory_LowStock_${dateStr}.csv`,csv);
+  toast('✅ 低库存报表已下载');
+}
+
 function downloadFile(filename, content) {
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement("a");
@@ -762,6 +864,7 @@ function downloadFile(filename, content) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 function openImport(){
@@ -781,8 +884,9 @@ function doImport(){
     if(d.items)state.items=d.items;if(d.cats)state.cats=d.cats;
     if(d.history)state.history=[...state.history,...d.history].slice(-300);
     if(d.purchases)state.purchases=[...(state.purchases||[]),...d.purchases].slice(-500);
+    if(d.customIcons)state.customIcons=[...new Set([...(state.customIcons||[]),...d.customIcons])];
     save();closeSheet();renderStats();render();toast('✅ 导入成功');
-  }catch(e){toast('❌ 数据格式错误，请重新复制');}
+  }catch(e){toast('❌ 数据格式错误');}
 }
 
 function closeSheet(){document.getElementById('overlay').style.display='none';selIconVal='';}
@@ -793,11 +897,12 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 const isViewOnly=new URLSearchParams(window.location.search).get('mode')==='boss';
 if(isViewOnly){
   document.body.classList.add('view-only');
-  const block=()=>toast('👁️ 浏览模式 View Only — 没有编辑权限');
+  const block=()=>toast('👁️ 浏览模式 View Only');
   window.adj=block;window.commitQty=block;window.save=block;
   window.doAddItem=block;window.doImport=block;window.deleteItem=block;
   window.saveEditItem=block;window.saveUnit=block;
   window.doLogPurchase=block;window.deletePurchase=block;
+  window.addCustomIcon=block;window.removeCustomIcon=block;
 }
 
 load();
