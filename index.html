@@ -58,6 +58,7 @@ body{font-family:var(--font-sans);background:#f8fafc}
 .card-info{flex:1;min-width:0}
 .card-name{font-size:14px;font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.name-zh{color:var(--color-text-tertiary)}
 .unit-tag{font-size:11px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:2px 6px;color:var(--color-text-secondary);cursor:pointer;font-weight:500}
 .unit-tag:hover{border-color:var(--color-border-info);color:var(--color-text-info)}
 .card-ctrl{display:flex;align-items:center;gap:5px;flex-shrink:0}
@@ -191,6 +192,7 @@ body.view-only .ch { pointer-events:none!important; }
 <div class="toast" id="toast"></div>
 
 <script src="/lib/sync-behavior.js"></script>
+<script src="/lib/display-name.js"></script>
 <script>
 const {
   isInventoryPayload,
@@ -198,6 +200,7 @@ const {
   mergeLoadedItem,
   buildExportPayload,
 }=window.InventorySync;
+const { splitDisplayName } = window.InventoryDisplay;
 
 const UNITS=[
   {v:'pcs',l:'个 / pcs'},{v:'pack',l:'包 / pack'},{v:'box',l:'箱 / box'},
@@ -590,14 +593,16 @@ function render(){
     if(!col){
       items.forEach(it=>{
         const isLow=it.qty<=it.low,isEdit=editingQtyId===it.id;
+        const dn=splitDisplayName(it.name);
         html+=`<div class="card">
           <div class="card-icon" style="background:${cat.color}">${it.icon}</div>
           <div class="card-info">
-            <div class="card-name">${it.name}</div>
+            <div class="card-name">${dn.primary}</div>
             <div class="card-sub">
+              ${dn.secondary?`<span class="name-zh">${dn.secondary}</span>`:''}
               <span class="unit-tag" onclick="openEditUnit('${it.id}')">${getUnitLabel(it.unit)}</span>
               ${it.sub?`<span style="color:var(--color-text-tertiary)">${it.sub}</span>`:''}
-              ${isLow?'<span class="low-badge">⚠️ Low Stock</span>':''}
+              ${isLow?'<span class="low-badge">Low</span>':''}
             </div>
           </div>
           <div class="card-ctrl">
