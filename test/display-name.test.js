@@ -24,6 +24,12 @@ test('Chinese-only name stays primary with empty secondary', () => {
   assert.strictEqual(r.secondary, '');
 });
 
+test('splits English-then-Chinese into English primary', () => {
+  const r = splitDisplayName('Mr. Muscle 威猛先生');
+  assert.strictEqual(r.primary, 'Mr. Muscle');
+  assert.strictEqual(r.secondary, '威猛先生');
+});
+
 test('handles empty / missing name', () => {
   assert.deepStrictEqual(splitDisplayName(''), { primary: '', secondary: '' });
   assert.deepStrictEqual(splitDisplayName(null), { primary: '', secondary: '' });
