@@ -190,7 +190,15 @@ body.view-only .ch { pointer-events:none!important; }
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="/lib/sync-behavior.js"></script>
 <script>
+const {
+  isInventoryPayload,
+  syncFailureMessage,
+  mergeLoadedItem,
+  buildExportPayload,
+}=window.InventorySync;
+
 const UNITS=[
   {v:'pcs',l:'个 / pcs'},{v:'pack',l:'包 / pack'},{v:'box',l:'箱 / box'},
   {v:'biji',l:'粒 / biji'},{v:'pairs',l:'双 / pairs'},{v:'set',l:'套 / set'},
@@ -436,9 +444,17 @@ async function load(isSilent=false){
   if(!isSilent){syncStatusEl.textContent='🔄 加载中...';syncStatusEl.className='sync-status';}
   try{
     const res=await fetch(`/api/sync?t=${Date.now()}`,{cache:'no-store'});
-    const d=await res.json();
-    if(d&&d.items&&d.items.length>0){
-      state.items=d.items.map(ci=>{const df=DEFAULT_ITEMS.find(x=>x.id===ci.id);return df?{...ci,name:df.name,sub:df.sub,unit:df.unit}:ci;});
+    let d=null;
+    try{d=await res.json();}catch(_){d=null;}
+    const fail=syncFailureMessage(res,d);
+    if(fail){
+      syncStatusEl.textContent='🔴 同步错误';syncStatusEl.className='sync-status offline';
+      if(!isSilent)toast('❌ '+fail);
+      renderStats();render();
+      return;
+    }
+    if(isInventoryPayload(d)&&d.items.length>0){
+      state.items=d.items.map(ci=>mergeLoadedItem(ci,DEFAULT_ITEMS));
       state.cats=d.cats||state.cats;
       state.history=d.history||[];
       state.purchases=d.purchases||[];
@@ -458,15 +474,30 @@ async function adj(id,d){
   syncStatusEl.textContent='⏳ 保存中...';syncStatusEl.className='sync-status';
   try{
     const res=await fetch(`/api/sync?t=${Date.now()}`,{cache:'no-store'});
-    const sd=await res.json();
-    if(sd&&sd.items){
+    let sd=null;
+    try{sd=await res.json();}catch(_){sd=null;}
+    const loadFail=syncFailureMessage(res,sd);
+    if(loadFail){
+      syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';
+      toast('❌ '+loadFail);renderStats();render();return;
+    }
+    if(isInventoryPayload(sd)){
       const si=sd.items.find(i=>i.id===id);
       if(si){
         const nq=Math.max(0,si.qty+d);const delta=nq-si.qty;si.qty=nq;
         if(!sd.history)sd.history=[];
         sd.history.push({id,name:li.name,delta,newQty:nq,unit:li.unit,ts:Date.now()});
-        await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sd)});
+        const postRes=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sd)});
+        let postBody=null;
+        try{postBody=await postRes.json();}catch(_){postBody=null;}
+        const postFail=syncFailureMessage(postRes,postBody);
+        if(postFail){
+          syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';
+          toast('❌ '+postFail);renderStats();render();return;
+        }
         state.items=sd.items;state.history=sd.history;
+        if(sd.purchases)state.purchases=sd.purchases;
+        if(sd.customIcons)state.customIcons=sd.customIcons;
       }
     }
     syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
@@ -482,15 +513,30 @@ async function commitQty(id){
   syncStatusEl.textContent='⏳ 保存中...';syncStatusEl.className='sync-status';
   try{
     const res=await fetch(`/api/sync?t=${Date.now()}`,{cache:'no-store'});
-    const sd=await res.json();
-    if(sd&&sd.items){
+    let sd=null;
+    try{sd=await res.json();}catch(_){sd=null;}
+    const loadFail=syncFailureMessage(res,sd);
+    if(loadFail){
+      syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';
+      toast('❌ '+loadFail);renderStats();render();return;
+    }
+    if(isInventoryPayload(sd)){
       const si=sd.items.find(i=>i.id===id);
       if(si&&si.qty!==nq){
         const delta=nq-si.qty;si.qty=nq;
         if(!sd.history)sd.history=[];
         sd.history.push({id,name:si.name||(li&&li.name)||'',delta,newQty:nq,unit:si.unit,ts:Date.now()});
-        await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sd)});
+        const postRes=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sd)});
+        let postBody=null;
+        try{postBody=await postRes.json();}catch(_){postBody=null;}
+        const postFail=syncFailureMessage(postRes,postBody);
+        if(postFail){
+          syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';
+          toast('❌ '+postFail);renderStats();render();return;
+        }
         state.items=sd.items;state.history=sd.history;
+        if(sd.purchases)state.purchases=sd.purchases;
+        if(sd.customIcons)state.customIcons=sd.customIcons;
       }
     }
     syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
@@ -501,8 +547,16 @@ async function commitQty(id){
 async function save(){
   syncStatusEl.textContent='⏳ 保存中...';syncStatusEl.className='sync-status';
   try{
-    await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},
+    const res=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({cats:state.cats,items:state.items,history:state.history.slice(-300),purchases:(state.purchases||[]).slice(-500),collapsed:state.collapsed,customIcons:state.customIcons||[]})});
+    let body=null;
+    try{body=await res.json();}catch(_){body=null;}
+    const fail=syncFailureMessage(res,body);
+    if(fail){
+      syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';
+      toast('❌ '+fail);
+      return;
+    }
     syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
   }catch(e){syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';}
 }
@@ -760,7 +814,7 @@ function doAddItem(){
 // ==========================================
 
 function openExport(){
-  const d=JSON.stringify({version:2,ts:Date.now(),cats:state.cats,items:state.items,history:state.history.slice(-50),customIcons:state.customIcons||[]});
+  const d=JSON.stringify(buildExportPayload(state));
   document.getElementById('sheet').innerHTML=`
     <div class="sheet-title">📤 导出报表与分享 Export & Share</div>
     <div class="sheet-sub">下载 Excel 报表或分享数据代码</div>
