@@ -174,10 +174,44 @@ body.view-only #more-btn { display:none!important; }
 .manage-toggle .manage-pill.on{background:var(--color-background-info);color:var(--color-text-info);border-color:var(--color-border-info)}
 .manage-chip{font-size:11px;font-weight:600;background:var(--color-background-info);color:var(--color-text-info);border:0.5px solid var(--color-border-info);border-radius:10px;padding:2px 8px;margin-left:6px;vertical-align:middle}
 .unit-plain{font-size:11px;color:var(--color-text-secondary);font-weight:500}
+.side-nav{display:none}
+@media (min-width:900px){
+  body{background:#f8fafc}
+  .app-shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh;max-width:1100px;margin:0 auto}
+  .side-nav{display:flex;flex-direction:column;gap:6px;padding:16px 12px;background:linear-gradient(180deg,#1e3a8a,#1d4ed8);color:#fff}
+  .side-brand{font-weight:800;font-size:16px;margin-bottom:4px}
+  .side-sync{font-size:11px;opacity:.9;margin-bottom:12px}
+  .side-link{border:0;background:transparent;color:rgba(255,255,255,.85);text-align:left;padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer}
+  .side-link.on{background:rgba(255,255,255,.18);color:#fff}
+  .side-more{margin-top:auto;background:rgba(255,255,255,.1)}
+  .tab-bar{display:none}
+  .header{background:#fff;color:inherit;border-bottom:1px solid var(--color-border-tertiary)}
+  .title{color:var(--color-text-primary)}
+  .sync-status{color:var(--color-text-info);background:var(--color-background-info)}
+  .sync-status.synced{color:var(--color-text-success);background:#ecfdf5}
+  .sync-status.offline{color:var(--color-text-danger);background:var(--color-background-danger)}
+  .hbtn{border-color:var(--color-border-secondary);color:var(--color-text-secondary)}
+  .fbtn{border-color:var(--color-border-tertiary);color:var(--color-text-secondary);background:none}
+  .fbtn.on{background:var(--color-background-danger);color:var(--color-text-danger);border-color:var(--color-border-danger)}
+  .desktop-only{display:block}
+  #stats{grid-template-columns:repeat(3,1fr)}
+  .cg-items{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .app{max-width:none;padding-bottom:24px;margin:0}
+  #more-btn{display:none}
+}
 </style>
 </head>
 <body>
 
+<div class="app-shell">
+<aside class="side-nav" id="side-nav" aria-label="Main">
+  <div class="side-brand">Inventory</div>
+  <div class="side-sync" id="side-sync"></div>
+  <button class="side-link on" id="s-inv" onclick="switchTab('inv')">📦 Stock</button>
+  <button class="side-link" id="s-hist" onclick="switchTab('hist')">📜 History</button>
+  <button class="side-link" id="s-buy" onclick="switchTab('buy')">🛒 Purchases</button>
+  <button class="side-link side-more" onclick="openMore()">⋯ More</button>
+</aside>
 <div class="app">
 <div class="header">
   <div class="header-top">
@@ -196,6 +230,7 @@ body.view-only #more-btn { display:none!important; }
 </div>
 <div class="stats" id="stats"></div>
 <div id="list"></div>
+</div>
 </div>
 
 <div class="tab-bar" id="tab-bar">
@@ -295,6 +330,13 @@ let state={cats:[...DEFAULT_CATS],items:[...DEFAULT_ITEMS.map(i=>({...i}))],hist
 let activeTab='inv',showLow=false,editingQtyId=null,purchaseFilterPerson='all';
 let manageMode=false;
 const syncStatusEl=document.getElementById('sync-status');
+
+function setSyncUi(text,className){
+  syncStatusEl.textContent=text;
+  syncStatusEl.className=className;
+  const side=document.getElementById('side-sync');
+  if(side){side.textContent=text;}
+}
 
 // Combined icons list (defaults + custom, dedup)
 function getAllIcons(){
@@ -463,14 +505,14 @@ function renderPurchases(){
 
 async function load(isSilent=false){
   if(isSilent&&(editingQtyId!==null||document.getElementById('overlay').style.display!=='none'))return;
-  if(!isSilent){syncStatusEl.textContent='🔄 加载中...';syncStatusEl.className='sync-status';}
+  if(!isSilent){setSyncUi('🔄 加载中...','sync-status');}
   try{
     const res=await fetch(`/api/sync?t=${Date.now()}`,{cache:'no-store'});
     let d=null;
     try{d=await res.json();}catch(_){d=null;}
     const fail=syncFailureMessage(res,d);
     if(fail){
-      syncStatusEl.textContent='🔴 同步错误';syncStatusEl.className='sync-status offline';
+      setSyncUi('🔴 同步错误','sync-status offline');
       if(!isSilent)toast('❌ '+fail);
       renderStats();render();
       return;
@@ -483,9 +525,9 @@ async function load(isSilent=false){
       state.collapsed=d.collapsed||{};
       state.customIcons=d.customIcons||[];
     }
-    syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
+    setSyncUi('🟢 已同步 Synced','sync-status synced');
   }catch(e){
-    if(!isSilent){syncStatusEl.textContent='🔴 离线 Offline';syncStatusEl.className='sync-status offline';}
+    if(!isSilent){setSyncUi('🔴 离线 Offline','sync-status offline');}
   }
   renderStats();render();
 }
@@ -493,14 +535,14 @@ async function load(isSilent=false){
 async function adj(id,d){
   const li=state.items.find(i=>i.id===id);if(!li)return;
   li.qty=Math.max(0,li.qty+d);renderStats();render();
-  syncStatusEl.textContent='⏳ 保存中...';syncStatusEl.className='sync-status';
+  setSyncUi('⏳ 保存中...','sync-status');
   try{
     const res=await fetch(`/api/sync?t=${Date.now()}`,{cache:'no-store'});
     let sd=null;
     try{sd=await res.json();}catch(_){sd=null;}
     const loadFail=syncFailureMessage(res,sd);
     if(loadFail){
-      syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';
+      setSyncUi('🔴 同步失败','sync-status offline');
       toast('❌ '+loadFail);renderStats();render();return;
     }
     if(isInventoryPayload(sd)){
@@ -514,7 +556,7 @@ async function adj(id,d){
         try{postBody=await postRes.json();}catch(_){postBody=null;}
         const postFail=syncFailureMessage(postRes,postBody);
         if(postFail){
-          syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';
+          setSyncUi('🔴 同步失败','sync-status offline');
           toast('❌ '+postFail);renderStats();render();return;
         }
         state.items=sd.items;state.history=sd.history;
@@ -522,8 +564,8 @@ async function adj(id,d){
         if(sd.customIcons)state.customIcons=sd.customIcons;
       }
     }
-    syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
-  }catch(e){syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';}
+    setSyncUi('🟢 已同步 Synced','sync-status synced');
+  }catch(e){setSyncUi('🔴 同步失败','sync-status offline');}
   renderStats();render();
 }
 
@@ -532,14 +574,14 @@ async function commitQty(id){
   const nq=Math.max(0,parseInt(e.value)||0);editingQtyId=null;
   const li=state.items.find(i=>i.id===id);if(li)li.qty=nq;
   renderStats();render();
-  syncStatusEl.textContent='⏳ 保存中...';syncStatusEl.className='sync-status';
+  setSyncUi('⏳ 保存中...','sync-status');
   try{
     const res=await fetch(`/api/sync?t=${Date.now()}`,{cache:'no-store'});
     let sd=null;
     try{sd=await res.json();}catch(_){sd=null;}
     const loadFail=syncFailureMessage(res,sd);
     if(loadFail){
-      syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';
+      setSyncUi('🔴 同步失败','sync-status offline');
       toast('❌ '+loadFail);renderStats();render();return;
     }
     if(isInventoryPayload(sd)){
@@ -553,7 +595,7 @@ async function commitQty(id){
         try{postBody=await postRes.json();}catch(_){postBody=null;}
         const postFail=syncFailureMessage(postRes,postBody);
         if(postFail){
-          syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';
+          setSyncUi('🔴 同步失败','sync-status offline');
           toast('❌ '+postFail);renderStats();render();return;
         }
         state.items=sd.items;state.history=sd.history;
@@ -561,13 +603,13 @@ async function commitQty(id){
         if(sd.customIcons)state.customIcons=sd.customIcons;
       }
     }
-    syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
-  }catch(err){syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';}
+    setSyncUi('🟢 已同步 Synced','sync-status synced');
+  }catch(err){setSyncUi('🔴 同步失败','sync-status offline');}
   renderStats();render();
 }
 
 async function save(){
-  syncStatusEl.textContent='⏳ 保存中...';syncStatusEl.className='sync-status';
+  setSyncUi('⏳ 保存中...','sync-status');
   try{
     const res=await fetch('/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({cats:state.cats,items:state.items,history:state.history.slice(-300),purchases:(state.purchases||[]).slice(-500),collapsed:state.collapsed,customIcons:state.customIcons||[]})});
@@ -575,12 +617,12 @@ async function save(){
     try{body=await res.json();}catch(_){body=null;}
     const fail=syncFailureMessage(res,body);
     if(fail){
-      syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';
+      setSyncUi('🔴 同步失败','sync-status offline');
       toast('❌ '+fail);
       return;
     }
-    syncStatusEl.textContent='🟢 已同步 Synced';syncStatusEl.className='sync-status synced';
-  }catch(e){syncStatusEl.textContent='🔴 同步失败';syncStatusEl.className='sync-status offline';}
+    setSyncUi('🟢 已同步 Synced','sync-status synced');
+  }catch(e){setSyncUi('🔴 同步失败','sync-status offline');}
 }
 
 // ─────────── RENDER ───────────
@@ -616,6 +658,7 @@ function render(){
     const col=state.collapsed[cat.id];
     html+=`<div class="cg"><div class="ch" onclick="toggleCat('${cat.id}')">${cat.name}<span class="cc">${items.length} 项</span></div>`;
     if(!col){
+      html+=`<div class="cg-items">`;
       items.forEach(it=>{
         const isLow=it.qty<=it.low,isEdit=editingQtyId===it.id;
         const dn=splitDisplayName(it.name);
@@ -644,6 +687,7 @@ function render(){
         </div>`;
       });
       if(manageMode)html+=`<button class="add-item-btn" onclick="openAddItem('${cat.id}')">➕ 在此分类添加新物品 Add Item</button>`;
+      html+=`</div>`;
     }
     html+='</div>';
   });
@@ -695,9 +739,8 @@ function setManageMode(on){
 function switchTab(t){
   activeTab=t;
   ['inv','hist','buy'].forEach(x=>{
-    const b=document.getElementById('t-'+x);if(!b)return;
-    b.className='tab'+(x===t?' on':'');
-    if(x==='buy'&&x===t)b.className='tab on purchase-tab';
+    const b=document.getElementById('t-'+x);if(b)b.className='tab'+(x===t?' on':'')+(x==='buy'&&x===t?' purchase-tab':'');
+    const s=document.getElementById('s-'+x);if(s)s.className='side-link'+(x===t?' on':'');
   });
   render();
 }
