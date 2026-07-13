@@ -153,6 +153,16 @@ body.view-only .hbtn { display:none!important; }
 body.view-only .qbadge,
 body.view-only .unit-tag,
 body.view-only .ch { pointer-events:none!important; }
+body.view-only #more-btn { display:none!important; }
+.more-row{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 16px;margin-bottom:0;border:0.5px solid var(--color-border-tertiary);border-bottom:none;background:var(--color-background-primary);font-size:14px;font-weight:600;color:var(--color-text-primary);cursor:pointer;text-align:left}
+.more-row:first-of-type{border-radius:var(--border-radius-md) var(--border-radius-md) 0 0}
+.more-row:last-of-type{border-bottom:0.5px solid var(--color-border-tertiary);border-radius:0 0 var(--border-radius-md) var(--border-radius-md);margin-bottom:16px}
+.more-row:only-of-type{border-radius:var(--border-radius-md);border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:16px}
+.more-row:active{background:var(--color-background-secondary)}
+.manage-pill{font-size:11px;font-weight:600;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:10px;padding:2px 8px;color:var(--color-text-tertiary)}
+.manage-toggle .manage-pill.on{background:var(--color-background-info);color:var(--color-text-info);border-color:var(--color-border-info)}
+.manage-chip{font-size:11px;font-weight:600;background:var(--color-background-info);color:var(--color-text-info);border:0.5px solid var(--color-border-info);border-radius:10px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+.unit-plain{font-size:11px;color:var(--color-text-secondary);font-weight:500}
 </style>
 </head>
 <body>
@@ -161,7 +171,7 @@ body.view-only .ch { pointer-events:none!important; }
 <div class="header">
   <div class="header-top">
     <div>
-      <div class="title">📦 Inventory</div>
+      <div class="title">📦 Inventory<span id="manage-chip" class="manage-chip" style="display:none">🛠️ Manage</span></div>
       <div class="sync-status" id="sync-status">🔄 加载 Loading...</div>
     </div>
     <div class="hbtns">
@@ -272,6 +282,7 @@ const DEFAULT_ICONS=['🧴','🫧','🧹','🧺','🌸','🖤','🤍','💙','�
 
 let state={cats:[...DEFAULT_CATS],items:[...DEFAULT_ITEMS.map(i=>({...i}))],history:[],purchases:[],collapsed:{},customIcons:[]};
 let activeTab='inv',showLow=false,editingQtyId=null,purchaseFilterPerson='all';
+let manageMode=false;
 const syncStatusEl=document.getElementById('sync-status');
 
 // Combined icons list (defaults + custom, dedup)
@@ -572,7 +583,13 @@ function renderStats(){
     <div class="stat"><div class="stat-v" style="color:var(--color-text-purchase)">${buys}</div><div class="stat-l">购买记录 Buys</div></div>`;
 }
 
+function updateManageChip(){
+  const chip=document.getElementById('manage-chip');
+  if(chip)chip.style.display=manageMode?'inline':'none';
+}
+
 function render(){
+  updateManageChip();
   if(activeTab==='hist'){renderHist();return;}
   if(activeTab==='buy'){renderPurchases();return;}
   const q=document.getElementById('sq').value.toLowerCase();
@@ -591,13 +608,16 @@ function render(){
       items.forEach(it=>{
         const isLow=it.qty<=it.low,isEdit=editingQtyId===it.id;
         const dn=splitDisplayName(it.name);
+        const unitHtml=manageMode
+          ?`<span class="unit-tag" onclick="openEditUnit('${it.id}')">${getUnitLabel(it.unit)}</span>`
+          :`<span class="unit-plain">${getUnitLabel(it.unit)}</span>`;
         html+=`<div class="card">
           <div class="card-icon" style="background:${cat.color}">${it.icon}</div>
           <div class="card-info">
             <div class="card-name">${dn.primary}</div>
             <div class="card-sub">
               ${dn.secondary?`<span class="name-zh">${dn.secondary}</span>`:''}
-              <span class="unit-tag" onclick="openEditUnit('${it.id}')">${getUnitLabel(it.unit)}</span>
+              ${unitHtml}
               ${it.sub?`<span style="color:var(--color-text-tertiary)">${it.sub}</span>`:''}
               ${isLow?'<span class="low-badge">Low</span>':''}
             </div>
@@ -608,12 +628,11 @@ function render(){
               ?`<input class="qinput" type="number" value="${it.qty}" min="0" id="qi_${it.id}" onblur="commitQty('${it.id}')" onkeydown="if(event.key==='Enter')commitQty('${it.id}')" autofocus>`
               :`<span class="qbadge${it.qty===0?' zero':''}" onclick="startQty('${it.id}')">${it.qty}</span>`}
             <button class="cb add" onclick="adj('${it.id}',1)">+</button>
-            <button class="buy-btn" onclick="openLogPurchase('${it.id}')" title="记录购买 Log Purchase">🛒</button>
-            <button class="edit-btn" onclick="openEditItem('${it.id}')">⋮</button>
+            ${manageMode?`<button class="edit-btn" onclick="openEditItem('${it.id}')">⋮</button>`:''}
           </div>
         </div>`;
       });
-      html+=`<button class="add-item-btn" onclick="openAddItem('${cat.id}')">➕ 在此分类添加新物品 Add Item</button>`;
+      if(manageMode)html+=`<button class="add-item-btn" onclick="openAddItem('${cat.id}')">➕ 在此分类添加新物品 Add Item</button>`;
     }
     html+='</div>';
   });
@@ -643,7 +662,25 @@ function renderHist(){
 function startQty(id){editingQtyId=id;render();setTimeout(()=>{const e=document.getElementById('qi_'+id);if(e){e.focus();e.select();}},50);}
 function toggleCat(id){state.collapsed[id]=!state.collapsed[id];save();render();}
 function toggleLow(){showLow=!showLow;document.getElementById('low-btn').className='fbtn'+(showLow?' on':'');render();}
-function openMore(){ toast('More coming'); }
+function openMore(){
+  document.getElementById('sheet').innerHTML=`
+    <div class="sheet-title">More</div>
+    <div class="sheet-sub">Import, export, and item management</div>
+    <button class="more-row" onclick="closeSheet(); openImport()">📥 Import data</button>
+    <button class="more-row" onclick="closeSheet(); openExport()">📤 Share / Export Excel</button>
+    <button class="more-row manage-toggle" onclick="setManageMode(!manageMode)">
+      🛠️ Manage items
+      <span class="manage-pill${manageMode?' on':''}">${manageMode?'On':'Off'}</span>
+    </button>`;
+  document.getElementById('overlay').style.display='flex';
+}
+
+function setManageMode(on){
+  manageMode=!!on;
+  closeSheet();
+  render();
+  toast(manageMode?'🛠️ Manage mode On':'Manage mode Off');
+}
 function switchTab(t){
   activeTab=t;
   ['inv','hist','buy'].forEach(x=>{
@@ -954,12 +991,15 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 const isViewOnly=new URLSearchParams(window.location.search).get('mode')==='boss';
 if(isViewOnly){
   document.body.classList.add('view-only');
+  manageMode=false;
   const block=()=>toast('👁️ 浏览模式 View Only');
   window.adj=block;window.commitQty=block;window.save=block;
   window.doAddItem=block;window.doImport=block;window.deleteItem=block;
   window.saveEditItem=block;window.saveUnit=block;
   window.doLogPurchase=block;window.deletePurchase=block;
   window.addCustomIcon=block;window.removeCustomIcon=block;
+  window.openMore=()=>toast('👁️ Browse mode View Only');
+  window.setManageMode=()=>toast('👁️ Browse mode View Only');
 }
 
 load();
