@@ -149,7 +149,6 @@ body.view-only .cb,
 body.view-only .edit-btn,
 body.view-only .buy-btn,
 body.view-only .add-item-btn,
-body.view-only #t-add,
 body.view-only .hbtn { display:none!important; }
 body.view-only .qbadge,
 body.view-only .unit-tag,
@@ -162,28 +161,26 @@ body.view-only .ch { pointer-events:none!important; }
 <div class="header">
   <div class="header-top">
     <div>
-      <div class="title">📦 仓库清单 Inventory</div>
+      <div class="title">📦 Inventory</div>
       <div class="sync-status" id="sync-status">🔄 加载 Loading...</div>
     </div>
     <div class="hbtns">
-      <button class="hbtn" onclick="openImport()">📥 导入</button>
-      <button class="hbtn" onclick="openExport()">📤 分享</button>
+      <button class="hbtn" id="more-btn" onclick="openMore()">⋯ More</button>
     </div>
   </div>
   <div class="search-row">
-    <div class="sw"><input id="sq" type="text" placeholder="搜索物品 Search…" oninput="render()"></div>
-    <button class="fbtn" id="low-btn" onclick="toggleLow()">⚠️ 低库存 Low</button>
+    <div class="sw"><input id="sq" type="text" placeholder="Search items…" oninput="render()"></div>
+    <button class="fbtn" id="low-btn" onclick="toggleLow()">Low</button>
   </div>
 </div>
 <div class="stats" id="stats"></div>
 <div id="list"></div>
 </div>
 
-<div class="tab-bar">
-  <button class="tab on" id="t-inv" onclick="switchTab('inv')"><span style="font-size:20px">📦</span>库存 Stock</button>
-  <button class="tab" id="t-hist" onclick="switchTab('hist')"><span style="font-size:20px">📜</span>记录 History</button>
-  <button class="tab" id="t-buy" onclick="switchTab('buy')"><span style="font-size:20px">🛒</span>购买 Purchase</button>
-  <button class="tab" id="t-add" onclick="openAddItem()"><span style="font-size:20px">➕</span>新增 Add</button>
+<div class="tab-bar" id="tab-bar">
+  <button class="tab on" id="t-inv" onclick="switchTab('inv')"><span style="font-size:20px">📦</span>Stock</button>
+  <button class="tab" id="t-hist" onclick="switchTab('hist')"><span style="font-size:20px">📜</span>History</button>
+  <button class="tab" id="t-buy" onclick="switchTab('buy')"><span style="font-size:20px">🛒</span>Buy</button>
 </div>
 
 <div id="overlay" class="overlay" style="display:none" onclick="overlayClick(event)">
@@ -646,9 +643,10 @@ function renderHist(){
 function startQty(id){editingQtyId=id;render();setTimeout(()=>{const e=document.getElementById('qi_'+id);if(e){e.focus();e.select();}},50);}
 function toggleCat(id){state.collapsed[id]=!state.collapsed[id];save();render();}
 function toggleLow(){showLow=!showLow;document.getElementById('low-btn').className='fbtn'+(showLow?' on':'');render();}
+function openMore(){ toast('More coming'); }
 function switchTab(t){
   activeTab=t;
-  ['inv','hist','buy','add'].forEach(x=>{
+  ['inv','hist','buy'].forEach(x=>{
     const b=document.getElementById('t-'+x);if(!b)return;
     b.className='tab'+(x===t?' on':'');
     if(x==='buy'&&x===t)b.className='tab on purchase-tab';
