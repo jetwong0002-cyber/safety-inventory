@@ -28,32 +28,43 @@
   --color-text-purchase:#9333ea;
   --border-radius-md:8px;
   --border-radius-lg:12px;
+  --color-brand:#1d4ed8;
+  --color-brand-2:#2563eb;
+  --color-header-text:#ffffff;
+  --color-page-wash:#eff6ff;
 }
-body{font-family:var(--font-sans);background:#f8fafc}
+body{font-family:var(--font-sans);background:linear-gradient(180deg,var(--color-page-wash) 0%,#f8fafc 45%)}
 .app{max-width:420px;margin:0 auto;padding:0 0 80px;}
-.header{padding:14px 16px 8px;border-bottom:0.5px solid var(--color-border-tertiary);position:sticky;top:0;background:var(--color-background-primary);z-index:20}
+.header{padding:14px 16px 8px;position:sticky;top:0;z-index:20;background:linear-gradient(135deg,var(--color-brand),var(--color-brand-2));color:var(--color-header-text);border-bottom:none}
+.title,.sync-status{color:#fff}
+.sync-status{background:rgba(255,255,255,.2)}
+.sync-status.synced{background:rgba(16,185,129,.25);color:#ecfdf5}
+.sync-status.offline{background:rgba(254,226,226,.95);color:#991b1b}
 .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.title{font-size:17px;font-weight:700;color:var(--color-text-primary)}
-.sync-status{font-size:11px;font-weight:600;color:var(--color-text-info);margin-top:2px;background:var(--color-background-info);display:inline-block;padding:2px 8px;border-radius:10px;}
-.sync-status.offline{color:var(--color-text-danger);background:var(--color-background-danger);}
-.sync-status.synced{color:var(--color-text-success);background:#ecfdf5;}
+.title{font-size:17px;font-weight:700}
+.sync-status{font-size:11px;font-weight:600;margin-top:2px;display:inline-block;padding:2px 8px;border-radius:10px}
 .hbtns{display:flex;gap:6px}
-.hbtn{background:none;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 10px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px}
+.hbtn{background:none;border:0.5px solid rgba(255,255,255,.45);border-radius:var(--border-radius-md);padding:6px 10px;font-size:12px;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px}
 .hbtn:active{opacity:.7}
 .search-row{display:flex;gap:8px}
 .sw{flex:1;position:relative}
-.sw input{width:100%;padding:8px 10px 8px 30px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:14px;background:var(--color-background-secondary);color:var(--color-text-primary)}
+.sw input{width:100%;padding:8px 10px 8px 30px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:14px;background:#fff;color:var(--color-text-primary)}
 .sw input:focus{outline:none;border-color:var(--color-border-info)}
-.fbtn{border:0.5px solid var(--color-border-tertiary);background:none;border-radius:var(--border-radius-md);padding:8px 10px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;white-space:nowrap}
-.fbtn.on{background:var(--color-background-danger);color:var(--color-text-danger);border-color:var(--color-border-danger)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.fbtn{border:0.5px solid rgba(255,255,255,.45);background:rgba(255,255,255,.15);border-radius:var(--border-radius-md);padding:8px 10px;font-size:12px;color:#fff;cursor:pointer;white-space:nowrap}
+.fbtn.on{background:rgba(254,226,226,.95);color:#991b1b;border-color:transparent}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
 .stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px;text-align:center}
 .stat-v{font-size:18px;font-weight:700;color:var(--color-text-primary)}
+.stat-v.brand{color:var(--color-brand)}
+.stat.danger .stat-v{color:var(--color-text-danger)}
+.stat.purchase .stat-v{color:var(--color-text-purchase)}
 .stat-l{font-size:11px;color:var(--color-text-secondary);margin-top:1px}
+.desktop-only{display:none}
 .cg{margin:0 16px 4px}
 .ch{display:flex;align-items:center;gap:6px;padding:14px 0 6px;font-size:14px;font-weight:600;color:var(--color-text-secondary);cursor:pointer;user-select:none}
 .ch .cc{margin-left:auto;font-size:11px;background:var(--color-background-secondary);border-radius:20px;padding:2px 8px;color:var(--color-text-tertiary)}
-.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,0.02)}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,0.02);border-left:4px solid var(--color-border-info)}
+.card.low{border-left-color:var(--color-text-danger);border-color:#fecaca}
 .card-icon{width:34px;height:34px;border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
 .card-info{flex:1;min-width:0}
 .card-name{font-size:14px;font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -64,8 +75,8 @@ body{font-family:var(--font-sans);background:#f8fafc}
 .card-ctrl{display:flex;align-items:center;gap:5px;flex-shrink:0}
 .cb{width:28px;height:28px;border:1px solid var(--color-border-secondary);border-radius:50%;background:var(--color-background-primary);font-size:16px;font-weight:bold;color:var(--color-text-primary);cursor:pointer;display:flex;align-items:center;justify-content:center}
 .cb:active{background:var(--color-background-secondary)}
-.cb.add{border-color:var(--color-border-success);color:var(--color-text-success)}
-.cb.sub{border-color:var(--color-border-danger);color:var(--color-text-danger)}
+.cb.add{background:#ecfdf5;border-color:transparent;color:var(--color-text-success)}
+.cb.sub{background:#fef2f2;border-color:transparent;color:var(--color-text-danger)}
 .qbadge{min-width:40px;text-align:center;font-size:15px;font-weight:700;color:var(--color-text-primary);cursor:pointer;padding:3px}
 .qbadge.zero{color:var(--color-text-danger)}
 .qinput{width:48px;text-align:center;font-size:14px;font-weight:600;border:1.5px solid var(--color-border-info);border-radius:var(--border-radius-md);padding:3px;background:var(--color-background-primary);color:var(--color-text-primary)}
@@ -575,12 +586,12 @@ async function save(){
 // ─────────── RENDER ───────────
 
 function renderStats(){
-  let low=0;state.items.forEach(i=>{if(i.qty<=i.low)low++;});
+  let low=0; state.items.forEach(i=>{ if(i.qty<=i.low) low++; });
   const buys=(state.purchases||[]).length;
   document.getElementById('stats').innerHTML=`
-    <div class="stat"><div class="stat-v">${state.items.length}</div><div class="stat-l">种类 Types</div></div>
-    <div class="stat"><div class="stat-v" style="color:${low>0?'var(--color-text-danger)':'var(--color-text-success)'}">${low}</div><div class="stat-l">低库存 Low</div></div>
-    <div class="stat"><div class="stat-v" style="color:var(--color-text-purchase)">${buys}</div><div class="stat-l">购买记录 Buys</div></div>`;
+    <div class="stat"><div class="stat-v brand">${state.items.length}</div><div class="stat-l">Types</div></div>
+    <div class="stat danger"><div class="stat-v">${low}</div><div class="stat-l">Low stock</div></div>
+    <div class="stat purchase desktop-only"><div class="stat-v">${buys}</div><div class="stat-l">Purchases</div></div>`;
 }
 
 function updateManageChip(){
@@ -611,7 +622,7 @@ function render(){
         const unitHtml=manageMode
           ?`<span class="unit-tag" onclick="openEditUnit('${it.id}')">${getUnitLabel(it.unit)}</span>`
           :`<span class="unit-plain">${getUnitLabel(it.unit)}</span>`;
-        html+=`<div class="card">
+        html+=`<div class="card${isLow?' low':''}">
           <div class="card-icon" style="background:${cat.color}">${it.icon}</div>
           <div class="card-info">
             <div class="card-name">${dn.primary}</div>
